@@ -13,6 +13,10 @@
   const EXCLUDED_CLIENT_SLUGS = ["new", "north-star-nature-suites"];
   const ACCESS_SESSION_KEY = "hgmDashboardAccess";
 
+  const SUPABASE_URL = 'https://vdonazmwxzucdxduzfhh.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkb25hem13eHp1Y2R4ZHV6ZmhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxNjM2NjIsImV4cCI6MjA4NTczOTY2Mn0.D0RfgvzXR6uoraYT01tKTLX7152cuZ74LZUd4Tlt42o';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   const state = {
     performanceWorkbook: null,
     accessClients: [],
@@ -340,6 +344,23 @@
 
   async function bootstrap() {
     try {
+      // Check for existing Supabase session to restore login state on page reload
+      var existingSession = getStoredAccessSession();
+      if (!existingSession || !existingSession.code) {
+        var sbSessionResult = await supabaseClient.auth.getSession();
+        var sbSession = sbSessionResult.data && sbSessionResult.data.session;
+        if (sbSession && sbSession.user) {
+          // Restore session from Supabase — derive access code from email (email = code@hiddengem.media)
+          var sbEmail = sbSession.user.email || "";
+          var sbCode = normalizeAccessCode(sbEmail.replace(/@hiddengem\.media$/, ""));
+          if (sbCode && !isAdminAccessCode(sbCode)) {
+            var profileRes = await supabaseClient.from('user_profiles').select('client_slug').single();
+            var sbSlug = profileRes.data && profileRes.data.client_slug ? profileRes.data.client_slug : sbCode;
+            setStoredAccessSession({ accessCode: sbCode, clientSlug: sbSlug, clientName: sbSlug }, false);
+          }
+        }
+      }
+
       const loaded = await Promise.all([
         fetchPerformanceWorkbook(),
         fetchAccessClients(),
@@ -352,6 +373,15 @@
       state.roiAnalysis = loaded[2];
       state.metaAnalysis = loaded[3];
       state.pricingToolData = loaded[4];
+
+      // Fetch and merge Meta Ads rows from Supabase into the workbook
+      var metaRowsByClientSlug = await fetchMetaRowsFromSupabase();
+      if (state.performanceWorkbook && Object.keys(metaRowsByClientSlug).length) {
+        state.performanceWorkbook = Object.assign({}, state.performanceWorkbook, {
+          metaRowsByClientSlug: metaRowsByClientSlug
+        });
+      }
+
       state.availableClients = (state.performanceWorkbook && state.performanceWorkbook.clients) || [];
       if (!ensureAuthorizedAccess()) {
         return;
@@ -465,28 +495,42 @@
   }
 
   async function fetchPerformanceWorkbook() {
-    const response = await fetch("Data/performance-dashboard.json?ts=" + Date.now(), {
-      cache: "no-store"
+    const { data, error } = await supabaseClient
+      .from('dashboard_performance')
+      .select('*')
+      .order('year', { ascending: true })
+      .order('month', { ascending: true });
+    if (error) throw new Error('Could not load performance data from Supabase.');
+
+    const rowsByClientSlug = {};
+    (data || []).forEach(function(row) {
+      if (!rowsByClientSlug[row.client_slug]) rowsByClientSlug[row.client_slug] = [];
+      rowsByClientSlug[row.client_slug].push(row);
     });
-    if (!response.ok) {
-      throw new Error("Could not load the performance workbook data file.");
-    }
-    return normalizePerformanceWorkbook(await response.json());
+    const clients = Object.keys(rowsByClientSlug).map(function(slug) {
+      const rows = rowsByClientSlug[slug];
+      return { slug: slug, name: slug };
+    });
+    return normalizePerformanceWorkbook({ clients: clients, rowsByClientSlug: rowsByClientSlug, metaRowsByClientSlug: {} });
   }
 
   async function fetchAccessClients() {
-    try {
-      const response = await fetch("Data/client-access-codes.json?ts=" + Date.now(), {
-        cache: "no-store"
-      });
-      if (!response.ok) {
-        return [];
-      }
-      const payload = await response.json();
-      return Array.isArray(payload.clients) ? payload.clients : [];
-    } catch (_error) {
-      return [];
-    }
+    return [];
+  }
+
+  async function fetchMetaRowsFromSupabase() {
+    const { data, error } = await supabaseClient
+      .from('dashboard_meta_ads')
+      .select('*')
+      .order('year', { ascending: true })
+      .order('month', { ascending: true });
+    if (error) return {};
+    const metaRowsByClientSlug = {};
+    (data || []).forEach(function(row) {
+      if (!metaRowsByClientSlug[row.client_slug]) metaRowsByClientSlug[row.client_slug] = [];
+      metaRowsByClientSlug[row.client_slug].push(row);
+    });
+    return metaRowsByClientSlug;
   }
 
   async function fetchRoiAnalysis() {
@@ -759,8 +803,11 @@
       return true;
     }
 
+    // For Supabase-authenticated clients, the session already contains clientSlug.
+    // If it's present, use it directly instead of looking up via local accessClients list.
+    var sessionClientSlug = session.clientSlug ? canonicalizeClientSlug(session.clientSlug) : null;
     var accessClient = findAccessClientByCode(session.code);
-    if (!accessClient) {
+    if (!accessClient && !sessionClientSlug) {
       state.isAdminAccess = false;
       clearStoredAccessSession();
       showAccessGate("Enter a valid access code.");
@@ -768,7 +815,8 @@
     }
 
     state.isAdminAccess = false;
-    var authorizedSlug = canonicalizeClientSlug(accessClient.clientSlug);
+    var authorizedSlug = sessionClientSlug || canonicalizeClientSlug(accessClient.clientSlug);
+    var sessionCode = session.code || (accessClient && normalizeAccessCode(accessClient.accessCode)) || "";
     var bounds = getClientMonthBounds(authorizedSlug);
     var params = new URLSearchParams(window.location.search);
     var routeClient = String(params.get("client") || "").trim();
@@ -777,8 +825,8 @@
     var requestedView = params.get("view") || "roi";
     var requestedMonth = bounds.max;
 
-    if (routeSlug !== authorizedSlug || routeCode !== normalizeAccessCode(accessClient.accessCode) || params.get("month") !== requestedMonth) {
-      window.location.replace(buildAuthorizedRoute(authorizedSlug, accessClient.accessCode, requestedMonth, requestedView));
+    if (routeSlug !== authorizedSlug || routeCode !== normalizeAccessCode(sessionCode) || params.get("month") !== requestedMonth) {
+      window.location.replace(buildAuthorizedRoute(authorizedSlug, sessionCode, requestedMonth, requestedView));
       return false;
     }
 
@@ -787,7 +835,7 @@
     return true;
   }
 
-  function handleAccessSubmit(event) {
+  async function handleAccessSubmit(event) {
     event.preventDefault();
     clearAccessError();
 
@@ -813,9 +861,16 @@
       return;
     }
 
-    var accessClient = findAccessClientByCode(accessCode);
-
-    if (!accessClient) {
+    // Sign in via Supabase
+    if (els.authSubmit) {
+      els.authSubmit.disabled = true;
+      els.authSubmit.className = "btn";
+    }
+    var authResult = await supabaseClient.auth.signInWithPassword({
+      email: accessCode + '@hiddengem.media',
+      password: accessCode
+    });
+    if (authResult.error) {
       showAccessGate("That access code was not recognized.");
       if (els.authSubmit) {
         els.authSubmit.className = "btn bad";
@@ -824,18 +879,26 @@
       return;
     }
 
-    setStoredAccessSession(accessClient, false);
+    // Get client_slug from user_profiles
+    var profileResult = await supabaseClient
+      .from('user_profiles')
+      .select('client_slug')
+      .single();
+    var clientSlug = profileResult.data && profileResult.data.client_slug ? profileResult.data.client_slug : accessCode;
+
+    // Store session and redirect
+    setStoredAccessSession({ accessCode: accessCode, clientSlug: clientSlug, clientName: clientSlug }, false);
     state.isAdminAccess = false;
-    state.authorizedClientSlug = canonicalizeClientSlug(accessClient.clientSlug);
+    state.authorizedClientSlug = canonicalizeClientSlug(clientSlug);
     if (els.authSubmit) {
       els.authSubmit.disabled = true;
       els.authSubmit.className = "btn";
     }
-
-    window.location.replace(buildAuthorizedRoute(accessClient.clientSlug, accessClient.accessCode, requestedMonth, requestedView));
+    window.location.replace(buildAuthorizedRoute(clientSlug, accessCode, requestedMonth, requestedView));
   }
 
   function handleLogout() {
+    supabaseClient.auth.signOut();
     clearStoredAccessSession();
     state.isAdminAccess = false;
     state.authorizedClientSlug = "";
