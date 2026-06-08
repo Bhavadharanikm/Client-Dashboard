@@ -3,7 +3,13 @@
   const DEFAULT_CLIENT_SLUG = (config.defaults && config.defaults.client) || "inspired-retreats";
   const DEFAULT_MONTH = (config.defaults && (config.defaults.month || config.defaults.to)) || "2026-03";
   const META_COLORS = ["#2663EB", "#F7AD43", "#12B981"];
-  const ADMIN_ACCESS_CODE = normalizeAccessCode((config.adminAccess && config.adminAccess.code) || "0912");
+  // Admin code stored as SHA-256 hash — never as plaintext in source
+  const ADMIN_CODE_HASH = "04994b4743c4c2db6bdf5b6e0ddc87af7f0fe6c6b73db4fcbcc0d3bd9b3cbf02";
+  async function hashCode(code) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(code).trim()));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+  }
+  const ADMIN_ACCESS_CODE = ""; // no longer stored plaintext
   const CLIENT_ALIASES = {
     "apple-mountain": ["apple-mountain", "apple-mountain-resort"],
     "casa-oso": ["casa-oso", "casa-oso-ad-account"],
@@ -353,7 +359,7 @@
           // Restore session from Supabase — derive access code from email (email = code@hiddengem.media)
           var sbEmail = sbSession.user.email || "";
           var sbCode = normalizeAccessCode(sbEmail.replace(/@hiddengem\.media$/, ""));
-          if (sbCode && !isAdminAccessCode(sbCode)) {
+          if (sbCode && !(await isAdminAccessCode(sbCode))) {
             var profileRes = await supabaseClient.from('user_profiles').select('client_slug').single();
             var sbSlug = profileRes.data && profileRes.data.client_slug ? profileRes.data.client_slug : sbCode;
             setStoredAccessSession({ accessCode: sbCode, clientSlug: sbSlug, clientName: sbSlug }, false);
@@ -694,8 +700,9 @@
     }
   }
 
-  function isAdminAccessCode(code) {
-    return normalizeAccessCode(code) === ADMIN_ACCESS_CODE;
+  async function isAdminAccessCode(code) {
+    const h = await hashCode(normalizeAccessCode(code));
+    return h === ADMIN_CODE_HASH;
   }
 
   function findAccessClientByCode(code) {
@@ -751,7 +758,7 @@
 
   function buildAuthorizedRoute(clientSlug, code, month, view) {
     var canonicalSlug = canonicalizeClientSlug(clientSlug);
-    var isAdmin = isAdminAccessCode(code) || state.isAdminAccess;
+    var isAdmin = state.isAdminAccess;
     var bounds = getClientMonthBounds(canonicalSlug);
     var nextMonth = isAdmin ? (month || DEFAULT_MONTH) : bounds.max;
 
@@ -783,7 +790,7 @@
       return false;
     }
 
-    if (isAdminAccessCode(session.code) || session.isAdmin) {
+    if ((await isAdminAccessCode(session.code)) || session.isAdmin) {
       state.isAdminAccess = true;
       state.authorizedClientSlug = "";
       hideAccessGate();
@@ -844,9 +851,9 @@
     var requestedView = params.get("view") || "roi";
     var requestedMonth = params.get("month") || DEFAULT_MONTH;
 
-    if (isAdminAccessCode(accessCode)) {
+    if (await isAdminAccessCode(accessCode)) {
       setStoredAccessSession({
-        accessCode: ADMIN_ACCESS_CODE,
+        accessCode: accessCode,
         clientSlug: "",
         clientName: "Admin"
       }, true);

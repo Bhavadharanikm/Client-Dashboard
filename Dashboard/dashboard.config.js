@@ -5,14 +5,11 @@ window.DASHBOARD_CONFIG = {
     from: "2026-01",
     to: "2026-03"
   },
-  adminAccess: {
-    code: "0912"
-  },
   campaignOrder: ["Discovery", "Retargeting"],
   pricingTool: {
     enabled: false,
     dataPath: "Pricing Tool Files/Data/pricing-tool-data.json",
-    clientSlugs: ["reflections-resorts", "flohom", "awayframes", "paradise-pointe", "stay-on-30a"]
+    clientSlugs: []
   },
   benchmarks: {
     roas: { decent: 3, solid: 5, great: 10 },
