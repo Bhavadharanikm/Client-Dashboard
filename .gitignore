@@ -1,0 +1,12 @@
+.env
+.DS_Store
+__pycache__/
+*.pyc
+
+# Client data — never commit these
+Dashboard/Data/*.json
+Dashboard/Data/*.xlsx
+Dashboard/Data/*.xls
+Dashboard/Data/*.csv
+Dashboard/Pricing Tool Files/Data/*.json
+Dashboard/Pricing Tool Files/Data/*.xlsx
