@@ -543,14 +543,16 @@
     try {
       const { data, error } = await supabaseClient
         .from('roi_analysis')
-        .select('client_slug,period_key,key_takeaways');
+        .select('client_slug,period_key,range_label,performance_overview,key_takeaways');
       if (error || !data) return {};
 
-      // Build structure: { [clientSlug]: { roi: { [periodKey]: { key_takeaways: [] } } } }
+      // Build structure: { [clientSlug]: { roi: { [periodKey]: { ... } } } }
       const result = {};
       data.forEach(function(row) {
         if (!result[row.client_slug]) result[row.client_slug] = { roi: {} };
         result[row.client_slug].roi[row.period_key] = {
+          range_label: row.range_label || "",
+          performance_overview: row.performance_overview || [],
           key_takeaways: row.key_takeaways || []
         };
       });
