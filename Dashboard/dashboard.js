@@ -555,13 +555,24 @@
 
   async function fetchMetaAnalysis() {
     try {
-      const response = await fetch("Data/meta-analysis.json?ts=" + Date.now(), {
-        cache: "no-store"
+      const { data, error } = await supabaseClient
+        .from('meta_analysis')
+        .select('client_slug,period_key,range_label,discovery_key_takeaways,retargeting_key_takeaways,performance_insights,performance_overview');
+      if (error || !data) return {};
+
+      // Build structure: { [clientSlug]: { meta: { [periodKey]: { ... } } } }
+      const result = {};
+      data.forEach(function(row) {
+        if (!result[row.client_slug]) result[row.client_slug] = { meta: {} };
+        result[row.client_slug].meta[row.period_key] = {
+          range_label: row.range_label,
+          discovery_key_takeaways: row.discovery_key_takeaways || [],
+          retargeting_key_takeaways: row.retargeting_key_takeaways || [],
+          performance_insights: row.performance_insights || [],
+          performance_overview: row.performance_overview || []
+        };
       });
-      if (!response.ok) {
-        return {};
-      }
-      return await response.json();
+      return result;
     } catch (_error) {
       return {};
     }
