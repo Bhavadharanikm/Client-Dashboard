@@ -2231,20 +2231,27 @@
       }
     ));
 
+    const hideLyRevenue = canonicalizeClientSlug(state.client && state.client.slug) === "the-cohost-company";
+
     const revenueLyAxis = buildTrendAxisBounds(
       state.allRoiMonths.reduce(function (values, month) {
-        values.push(month.totalRevenue, month.directRevenue, month.totalRevenueLy);
+        values.push(month.totalRevenue, month.directRevenue);
+        if (!hideLyRevenue) values.push(month.totalRevenueLy);
         return values;
       }, []),
       { step: 25000, tightRangeThreshold: 0.3 }
     );
 
+    const revenueLySeries = [
+      { name: "Total Revenue", data: state.allRoiMonths.map(function (month) { return month.totalRevenue; }) },
+      { name: "Direct Booking Revenue", data: state.allRoiMonths.map(function (month) { return month.directRevenue; }) }
+    ];
+    if (!hideLyRevenue) {
+      revenueLySeries.push({ name: "LY Revenue", data: state.allRoiMonths.map(function (month) { return month.totalRevenueLy; }) });
+    }
+
     createChart("revenueLyChart", "roi-revenue-ly", {
-      series: [
-        { name: "Total Revenue", data: state.allRoiMonths.map(function (month) { return month.totalRevenue; }) },
-        { name: "Direct Booking Revenue", data: state.allRoiMonths.map(function (month) { return month.directRevenue; }) },
-        { name: "LY Revenue", data: state.allRoiMonths.map(function (month) { return month.totalRevenueLy; }) }
-      ],
+      series: revenueLySeries,
       chart: {
         type: "line",
         height: 210,
@@ -2257,8 +2264,8 @@
       dataLabels: { enabled: false },
       stroke: {
         curve: "smooth",
-        width: [3.5, 3, 3],
-        dashArray: [0, 0, 7]
+        width: hideLyRevenue ? [3.5, 3] : [3.5, 3, 3],
+        dashArray: hideLyRevenue ? [0, 0] : [0, 0, 7]
       },
       xaxis: {
         categories: state.allRoiMonths.map(function (month) { return formatShortMonthYearKeyCompact(month.key); }),
@@ -2280,7 +2287,7 @@
           formatter: formatCurrencyCompact
         }
       },
-      colors: [totalRevenueColor, directRevenueColor, "#94A3B8"],
+      colors: hideLyRevenue ? [totalRevenueColor, directRevenueColor] : [totalRevenueColor, directRevenueColor, "#94A3B8"],
       grid: {
         borderColor: gridColor,
         strokeDashArray: 0,
