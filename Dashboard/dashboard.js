@@ -902,8 +902,8 @@
     window.location.replace(buildAuthorizedRoute(clientSlug, accessCode, requestedMonth, requestedView));
   }
 
-  function handleLogout() {
-    supabaseClient.auth.signOut();
+  async function handleLogout() {
+    await supabaseClient.auth.signOut();
     clearStoredAccessSession();
     state.isAdminAccess = false;
     state.authorizedClientSlug = "";
