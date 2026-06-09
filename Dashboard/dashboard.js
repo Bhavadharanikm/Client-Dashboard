@@ -594,38 +594,25 @@
     }
   }
 
-  function getRevenueIntelligenceDataPath(clientSlug) {
-    const canonicalSlug = canonicalizeClientSlug(clientSlug);
-    if (canonicalSlug === "flohom") {
-      return "Pricing Tool Files/Data/revenue-intelligence.json";
-    }
-    if (canonicalSlug === "reflections-resorts") {
-      return "Pricing Tool Files/Data/revenue-intelligence-reflections-resorts.json";
-    }
-    if (canonicalSlug === "awayframes") {
-      return "Pricing Tool Files/Data/revenue-intelligence-awayframes.json";
-    }
-    if (canonicalSlug === "paradise-pointe") {
-      return "Pricing Tool Files/Data/revenue-intelligence-paradise-pointe.json";
-    }
-    if (canonicalSlug === "stay-on-30a") {
-      return "Pricing Tool Files/Data/revenue-intelligence-stay-on-30a.json";
-    }
-    return "";
-  }
+  const PRICING_ENABLED_SLUGS = ["flohom", "reflections-resorts", "awayframes", "paradise-pointe", "stay-on-30a"];
+  const REVENUE_INTELLIGENCE_API_URL = "https://hiddengem-ai.netlify.app/api/v1/public/revenue-intelligence";
 
   async function fetchRevenueIntelligenceData(clientSlug) {
-    const dataPath = getRevenueIntelligenceDataPath(clientSlug);
-    if (!dataPath) {
-      return null;
-    }
+    const canonicalSlug = canonicalizeClientSlug(clientSlug);
+    if (PRICING_ENABLED_SLUGS.indexOf(canonicalSlug) === -1) return null;
     try {
-      const response = await fetch(new URL(dataPath, window.location.href).toString() + "?ts=" + Date.now(), {
+      // Fetch client's pricing API key securely from Supabase (RLS ensures own key only)
+      const { data: profile, error } = await supabaseClient
+        .from('user_profiles')
+        .select('pricing_api_key')
+        .single();
+      if (error || !profile || !profile.pricing_api_key) return null;
+
+      const response = await fetch(REVENUE_INTELLIGENCE_API_URL, {
+        headers: { "Authorization": "Bearer " + profile.pricing_api_key, "Accept": "application/json" },
         cache: "no-store"
       });
-      if (!response.ok) {
-        return null;
-      }
+      if (!response.ok) return null;
       return await response.json();
     } catch (_error) {
       return null;
