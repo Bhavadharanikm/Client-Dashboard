@@ -332,13 +332,13 @@
   }
 
   function hydrateDefaults() {
-    const params = new URLSearchParams(window.location.search);
+    const params = getRouteParams();
     state.selectedMonth = params.get("month") || DEFAULT_MONTH;
     els.monthInput.value = state.selectedMonth;
   }
 
   function hydrateView() {
-    const params = new URLSearchParams(window.location.search);
+    const params = getRouteParams();
     state.activeView = params.get("view") === "meta" ? "meta" : (params.get("view") === "pricing" ? "pricing" : "roi");
     els.sidebarDashboardTitle.textContent = state.activeView === "meta"
       ? "Meta Ads Dashboard"
@@ -398,7 +398,7 @@
         });
       }
       renderClientOptions();
-      const params = new URLSearchParams(window.location.search);
+      const params = getRouteParams();
       const routeClient = params.get("client");
       const selectedSlug = resolveRouteClientSlug(routeClient || DEFAULT_CLIENT_SLUG || (state.availableClients[0] && state.availableClients[0].slug) || "");
       els.clientSelect.value = state.availableClients.some(function (client) {
@@ -754,25 +754,69 @@
     });
   }
 
+  // --- URL token helpers (obfuscate client URLs) ---
+  function encodeRouteToken(clientParam, month, view) {
+    try {
+      var raw = [clientParam, month, view || "roi"].join("|");
+      return btoa(raw).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    } catch (_e) { return ""; }
+  }
+
+  function decodeRouteToken(token) {
+    try {
+      var padded = String(token || "").replace(/-/g, "+").replace(/_/g, "/");
+      var rem = padded.length % 4;
+      if (rem) padded += "===".slice(0, 4 - rem);
+      var parts = atob(padded).split("|");
+      return parts.length >= 2 ? { clientParam: parts[0] || "", month: parts[1] || "", view: parts[2] || "roi" } : null;
+    } catch (_e) { return null; }
+  }
+
+  // Returns URLSearchParams with decoded token values (if ?t= is present), else raw params.
+  // Use this everywhere we READ client/month/view from the URL.
+  function getRouteParams() {
+    var raw = new URLSearchParams(window.location.search);
+    var t = raw.get("t");
+    if (t) {
+      var decoded = decodeRouteToken(t);
+      if (decoded) {
+        var p = new URLSearchParams();
+        p.set("client", decoded.clientParam);
+        p.set("month", decoded.month);
+        p.set("view", decoded.view);
+        return p;
+      }
+    }
+    return raw;
+  }
+  // --------------------------------------------------
+
   function buildAuthorizedRoute(clientSlug, code, month, view) {
     var canonicalSlug = canonicalizeClientSlug(clientSlug);
     var isAdmin = state.isAdminAccess;
     var bounds = getClientMonthBounds(canonicalSlug);
     var nextMonth = isAdmin ? (month || DEFAULT_MONTH) : bounds.max;
+    var nextView = view === "meta" ? "meta" : view === "pricing" ? "pricing" : "roi";
 
-    var params = new URLSearchParams(window.location.search);
-    params.set("client", isAdmin ? canonicalSlug : canonicalSlug + normalizeAccessCode(code));
+    if (!isAdmin) {
+      // Encode client routes into an opaque token so slug/code/month aren't guessable
+      var clientParam = canonicalSlug + normalizeAccessCode(code);
+      var token = encodeRouteToken(clientParam, nextMonth, nextView);
+      return window.location.pathname + "?t=" + token;
+    }
+
+    // Admin: keep a readable URL
+    var params = new URLSearchParams();
+    params.set("client", canonicalSlug);
     params.set("month", nextMonth);
-    params.set("view", view === "meta" ? "meta" : view === "pricing" ? "pricing" : "roi");
-    params.delete("code");
-    params.delete("clientName");
+    params.set("view", nextView);
     return window.location.pathname + "?" + params.toString();
   }
 
   async function ensureAuthorizedAccess() {
     var session = getStoredAccessSession();
     if ((!session || !session.code) && !state.isAdminAccess) {
-      var directParams = new URLSearchParams(window.location.search);
+      var directParams = getRouteParams();
       var directRouteClient = String(directParams.get("client") || "").trim();
       var directRouteCode = extractRouteAccessCode(directRouteClient);
       var directAccessClient = directRouteCode ? findAccessClientByCode(directRouteCode) : null;
@@ -823,7 +867,7 @@
     var authorizedSlug = sessionClientSlug || canonicalizeClientSlug(accessClient.clientSlug);
     var sessionCode = session.code || (accessClient && normalizeAccessCode(accessClient.accessCode)) || "";
     var bounds = getClientMonthBounds(authorizedSlug);
-    var params = new URLSearchParams(window.location.search);
+    var params = getRouteParams();
     var routeClient = String(params.get("client") || "").trim();
     var routeCode = extractRouteAccessCode(routeClient);
     var routeSlug = resolveRouteClientSlug(routeClient || authorizedSlug);
@@ -845,7 +889,7 @@
     clearAccessError();
 
     var accessCode = normalizeAccessCode(els.authCodeInput && els.authCodeInput.value);
-    var params = new URLSearchParams(window.location.search);
+    var params = getRouteParams();
     var requestedView = params.get("view") || "roi";
     var requestedMonth = params.get("month") || DEFAULT_MONTH;
 
@@ -923,6 +967,7 @@
     params.delete("clientName");
     params.delete("month");
     params.delete("view");
+    params.delete("t");
     window.location.replace(window.location.pathname + (params.toString() ? "?" + params.toString() : ""));
   }
 
@@ -951,7 +996,7 @@
     if (state.isAdminAccess) {
       return canonicalClientSlug;
     }
-    var params = new URLSearchParams(window.location.search);
+    var params = getRouteParams();
     var existing = String(params.get("client") || "").trim();
     var code = normalizeAccessCode(params.get("code"));
     var matchedAccessClient = state.accessClients.find(function (client) {
@@ -4075,10 +4120,17 @@
   }
 
   function updateRoute(clientSlug, month, view) {
+    var nextView = view === "meta" ? "meta" : view === "pricing" ? "pricing" : "roi";
+    if (!state.isAdminAccess) {
+      var clientParam = buildRouteClientParam(clientSlug);
+      var token = encodeRouteToken(clientParam, month, nextView);
+      window.history.replaceState({}, "", window.location.pathname + "?t=" + token);
+      return;
+    }
     const params = new URLSearchParams(window.location.search);
     params.set("client", buildRouteClientParam(clientSlug));
     params.set("month", month);
-    params.set("view", view === "meta" ? "meta" : view === "pricing" ? "pricing" : "roi");
+    params.set("view", nextView);
     params.delete("code");
     params.delete("clientName");
     window.history.replaceState({}, "", window.location.pathname + "?" + params.toString());
