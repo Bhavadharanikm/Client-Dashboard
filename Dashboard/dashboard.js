@@ -2964,17 +2964,33 @@
       return a.campaignType.localeCompare(b.campaignType);
     });
 
+    const showDirectRevenue = canonicalizeClientSlug(state.client && state.client.slug) === "reflections-resorts";
+
+    // Build a lookup of directRevenue by month key from ROI data
+    const directRevenueByMonth = {};
+    if (showDirectRevenue && Array.isArray(state.allRoiMonths)) {
+      state.allRoiMonths.forEach(function (m) {
+        directRevenueByMonth[m.key] = m.directRevenue;
+      });
+    }
+
     return [
       '<div class="meta-table-card meta-portfolio-table"><div class="meta-table-wrap"><table class="meta-table">',
-      "<thead><tr><th>Month</th><th>Campaign</th><th>Spend</th><th>Revenue</th><th>ROAS</th><th>Impressions</th><th>Visits</th><th>Leads/Followers</th><th>IG Bio Leads</th><th>Bookings (Email)</th><th>Bookings (FB)</th><th>Cost/Booking</th><th>% Avg BV</th></tr></thead>",
+      "<thead><tr><th>Month</th><th>Campaign</th><th>Spend</th><th>Revenue</th>" +
+        (showDirectRevenue ? "<th>Direct Booking Revenue</th>" : "") +
+        "<th>ROAS</th><th>Impressions</th><th>Visits</th><th>Leads/Followers</th><th>IG Bio Leads</th><th>Bookings (Email)</th><th>Bookings (FB)</th><th>Cost/Booking</th><th>% Avg BV</th></tr></thead>",
       "<tbody>",
       rows.map(function (row) {
+        // Only show direct revenue on the first campaign row per month to avoid duplication
+        const monthKey = row.key;
+        const directRevenue = showDirectRevenue ? (directRevenueByMonth[monthKey] || 0) : null;
         return [
           "<tr>",
           '<td><span class="meta-month-pill meta-month-' + escapeHtml(String(row.monthIndex)) + '">' + escapeHtml(row.shortLabel) + "</span></td>",
           "<td>" + escapeHtml(row.campaignType) + "</td>",
           "<td>" + escapeHtml(formatCurrency(row.spend, 0)) + "</td>",
           "<td>" + escapeHtml(formatCurrency(row.revenue, 0)) + "</td>",
+          (showDirectRevenue ? "<td>" + escapeHtml(directRevenue > 0 ? formatCurrency(directRevenue, 0) : "—") + "</td>" : ""),
           "<td>" + escapeHtml(formatMultiple(primaryRoas(row))) + "</td>",
           "<td>" + escapeHtml(formatNumber(row.impressions)) + "</td>",
           "<td>" + escapeHtml(formatNumber(row.profileVisits)) + "</td>",
