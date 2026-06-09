@@ -541,13 +541,20 @@
 
   async function fetchRoiAnalysis() {
     try {
-      const response = await fetch("Data/roi-analysis.json?ts=" + Date.now(), {
-        cache: "no-store"
+      const { data, error } = await supabaseClient
+        .from('roi_analysis')
+        .select('client_slug,period_key,key_takeaways');
+      if (error || !data) return {};
+
+      // Build structure: { [clientSlug]: { roi: { [periodKey]: { key_takeaways: [] } } } }
+      const result = {};
+      data.forEach(function(row) {
+        if (!result[row.client_slug]) result[row.client_slug] = { roi: {} };
+        result[row.client_slug].roi[row.period_key] = {
+          key_takeaways: row.key_takeaways || []
+        };
       });
-      if (!response.ok) {
-        return {};
-      }
-      return await response.json();
+      return result;
     } catch (_error) {
       return {};
     }
