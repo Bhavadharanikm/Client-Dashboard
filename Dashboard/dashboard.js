@@ -350,24 +350,21 @@
 
   async function bootstrap() {
     try {
-      // Check for existing Supabase session to restore login state on page reload
+      // Always call getSession() to ensure the Supabase JWT is fresh (it expires after 1 hour).
+      // This also restores login state on page reload when sessionStorage is empty.
+      var sbSessionResult = await supabaseClient.auth.getSession();
+      var sbSession = sbSessionResult.data && sbSessionResult.data.session;
       var existingSession = getStoredAccessSession();
-      if (!existingSession || !existingSession.code) {
-        var sbSessionResult = await supabaseClient.auth.getSession();
-        var sbSession = sbSessionResult.data && sbSessionResult.data.session;
-        if (sbSession && sbSession.user) {
-          var sbEmail = sbSession.user.email || "";
-          if (sbEmail === 'admin@hiddengem.media') {
-            // Restore admin session from Supabase
-            setStoredAccessSession({ accessCode: "", clientSlug: "", clientName: "Admin" }, true);
-          } else {
-            // Restore client session — derive access code from email (email = code@hiddengem.media)
-            var sbCode = normalizeAccessCode(sbEmail.replace(/@hiddengem\.media$/, ""));
-            if (sbCode) {
-              var profileRes = await supabaseClient.from('user_profiles').select('client_slug').single();
-              var sbSlug = profileRes.data && profileRes.data.client_slug ? profileRes.data.client_slug : sbCode;
-              setStoredAccessSession({ accessCode: sbCode, clientSlug: sbSlug, clientName: sbSlug }, false);
-            }
+      if (sbSession && sbSession.user && (!existingSession || !existingSession.code)) {
+        var sbEmail = sbSession.user.email || "";
+        if (sbEmail === 'admin@hiddengem.media') {
+          setStoredAccessSession({ accessCode: "", clientSlug: "", clientName: "Admin" }, true);
+        } else {
+          var sbCode = normalizeAccessCode(sbEmail.replace(/@hiddengem\.media$/, ""));
+          if (sbCode) {
+            var profileRes = await supabaseClient.from('user_profiles').select('client_slug').single();
+            var sbSlug = profileRes.data && profileRes.data.client_slug ? profileRes.data.client_slug : sbCode;
+            setStoredAccessSession({ accessCode: sbCode, clientSlug: sbSlug, clientName: sbSlug }, false);
           }
         }
       }
