@@ -356,13 +356,18 @@
         var sbSessionResult = await supabaseClient.auth.getSession();
         var sbSession = sbSessionResult.data && sbSessionResult.data.session;
         if (sbSession && sbSession.user) {
-          // Restore session from Supabase — derive access code from email (email = code@hiddengem.media)
           var sbEmail = sbSession.user.email || "";
-          var sbCode = normalizeAccessCode(sbEmail.replace(/@hiddengem\.media$/, ""));
-          if (sbCode && !(await isAdminAccessCode(sbCode))) {
-            var profileRes = await supabaseClient.from('user_profiles').select('client_slug').single();
-            var sbSlug = profileRes.data && profileRes.data.client_slug ? profileRes.data.client_slug : sbCode;
-            setStoredAccessSession({ accessCode: sbCode, clientSlug: sbSlug, clientName: sbSlug }, false);
+          if (sbEmail === 'admin@hiddengem.media') {
+            // Restore admin session from Supabase
+            setStoredAccessSession({ accessCode: "", clientSlug: "", clientName: "Admin" }, true);
+          } else {
+            // Restore client session — derive access code from email (email = code@hiddengem.media)
+            var sbCode = normalizeAccessCode(sbEmail.replace(/@hiddengem\.media$/, ""));
+            if (sbCode) {
+              var profileRes = await supabaseClient.from('user_profiles').select('client_slug').single();
+              var sbSlug = profileRes.data && profileRes.data.client_slug ? profileRes.data.client_slug : sbCode;
+              setStoredAccessSession({ accessCode: sbCode, clientSlug: sbSlug, clientName: sbSlug }, false);
+            }
           }
         }
       }
@@ -907,6 +912,11 @@
     var requestedMonth = params.get("month") || DEFAULT_MONTH;
 
     if (await isAdminAccessCode(accessCode)) {
+      // Sign into Supabase as admin so RLS policies allow reading all client data
+      await supabaseClient.auth.signInWithPassword({
+        email: 'admin@hiddengem.media',
+        password: accessCode
+      });
       setStoredAccessSession({
         accessCode: accessCode,
         clientSlug: "",
