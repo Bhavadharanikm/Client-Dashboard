@@ -9,7 +9,7 @@ window.DASHBOARD_CONFIG = {
   pricingTool: {
     enabled: false,
     dataPath: "Data/pricing-tool-data.json",
-    clientSlugs: ["reflections-resorts", "flohom", "awayframes", "paradise-pointe", "stay-on-30a"]
+    clientSlugs: []
   },
   benchmarks: {
     roas: { decent: 3, solid: 5, great: 10 },
