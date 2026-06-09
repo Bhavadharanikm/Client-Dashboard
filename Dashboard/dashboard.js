@@ -26,7 +26,6 @@
   const state = {
     performanceWorkbook: null,
     accessClients: [],
-    roiAnalysis: {},
     metaAnalysis: {},
     pricingToolData: null,
     revenueIntelligenceData: null,
@@ -372,15 +371,13 @@
       const loaded = await Promise.all([
         fetchPerformanceWorkbook(),
         fetchAccessClients(),
-        fetchRoiAnalysis(),
         fetchMetaAnalysis(),
         fetchPricingToolData()
       ]);
       state.performanceWorkbook = loaded[0];
       state.accessClients = loaded[1];
-      state.roiAnalysis = loaded[2];
-      state.metaAnalysis = loaded[3];
-      state.pricingToolData = loaded[4];
+      state.metaAnalysis = loaded[2];
+      state.pricingToolData = loaded[3];
 
       // Fetch and merge Meta Ads rows from Supabase into the workbook
       var metaRowsByClientSlug = await fetchMetaRowsFromSupabase();
@@ -539,29 +536,6 @@
       metaRowsByClientSlug[row.client_slug].push(row);
     });
     return metaRowsByClientSlug;
-  }
-
-  async function fetchRoiAnalysis() {
-    try {
-      const { data, error } = await supabaseClient
-        .from('roi_analysis')
-        .select('client_slug,period_key,range_label,performance_overview,key_takeaways');
-      if (error || !data) return {};
-
-      // Build structure: { [clientSlug]: { roi: { [periodKey]: { ... } } } }
-      const result = {};
-      data.forEach(function(row) {
-        if (!result[row.client_slug]) result[row.client_slug] = { roi: {} };
-        result[row.client_slug].roi[row.period_key] = {
-          range_label: row.range_label || "",
-          performance_overview: row.performance_overview || [],
-          key_takeaways: row.key_takeaways || []
-        };
-      });
-      return result;
-    } catch (_error) {
-      return {};
-    }
   }
 
   async function fetchMetaAnalysis() {
@@ -1404,7 +1378,6 @@
         : "Revenue data is loaded from the workbook."
     ];
     renderList(els.summaryOverviewList, defaultOverviewItems);
-    applyRoiAnalysis(canonicalizeClientSlug(state.client && state.client.slug), selectedMonth);
 
     const latestMonthLabel = latestMonth ? latestMonth.label : "Selected month";
     setText(els.summaryNote1, latestMonthLabel);
@@ -4014,17 +3987,6 @@
     setText(els.summaryNote6, "");
   }
 
-  function applyRoiAnalysis(clientSlug, selectedMonth) {
-    const entry = getRoiAnalysisEntry(clientSlug, selectedMonth);
-    if (!entry) {
-      return;
-    }
-
-    if (Array.isArray(entry.key_takeaways) && entry.key_takeaways.length) {
-      renderList(els.summaryOverviewList, entry.key_takeaways);
-    }
-  }
-
   // Find the best matching analysis entry: exact period_key match first,
   // then fall back to the most recent period_key <= selectedMonth.
   function findBestAnalysisEntry(store, selectedMonth) {
@@ -4034,12 +3996,6 @@
     const keys = Object.keys(store).filter(function(k) { return k <= selectedMonth; }).sort();
     if (keys.length) return store[keys[keys.length - 1]];
     return null;
-  }
-
-  function getRoiAnalysisEntry(clientSlug, selectedMonth) {
-    const clientData = state.roiAnalysis && state.roiAnalysis[clientSlug];
-    if (!clientData || !clientData.roi) return null;
-    return findBestAnalysisEntry(clientData.roi, selectedMonth);
   }
 
   function getMetaAnalysisEntry(clientSlug, selectedMonth) {
