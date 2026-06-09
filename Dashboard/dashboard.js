@@ -2561,7 +2561,7 @@
       renderMetaSummaryStat("Cost Per Booking (%)", currentCostPerBooking ? formatCurrency(currentCostPerBooking, 0) : "—", currentPctAvgBookingValue ? formatPercent(currentPctAvgBookingValue, 0) + " avg BV" : currentMonthLabel),
       renderMetaSummaryStat("Leads", formatNumber(currentLeads), currentMonthLabel),
       renderMetaSummaryStat("Followers", formatNumber(currentFollowers), currentMonthLabel),
-      renderMetaSummaryStat("Impressions", formatNumber(currentViews), currentMonthLabel),
+      renderMetaSummaryStat("Views", formatNumber(currentViews), currentMonthLabel),
       "</section>"
     ].join("");
   }
