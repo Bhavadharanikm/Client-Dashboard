@@ -4028,20 +4028,27 @@
     }
   }
 
+  // Find the best matching analysis entry: exact period_key match first,
+  // then fall back to the most recent period_key <= selectedMonth.
+  function findBestAnalysisEntry(store, selectedMonth) {
+    if (!store) return null;
+    if (store[selectedMonth]) return store[selectedMonth];
+    // Find the closest period_key that is <= selectedMonth
+    const keys = Object.keys(store).filter(function(k) { return k <= selectedMonth; }).sort();
+    if (keys.length) return store[keys[keys.length - 1]];
+    return null;
+  }
+
   function getRoiAnalysisEntry(clientSlug, selectedMonth) {
     const clientData = state.roiAnalysis && state.roiAnalysis[clientSlug];
-    if (!clientData || !clientData.roi) {
-      return null;
-    }
-    return clientData.roi[selectedMonth] || null;
+    if (!clientData || !clientData.roi) return null;
+    return findBestAnalysisEntry(clientData.roi, selectedMonth);
   }
 
   function getMetaAnalysisEntry(clientSlug, selectedMonth) {
     const clientData = state.metaAnalysis && state.metaAnalysis[clientSlug];
-    if (!clientData || !clientData.meta) {
-      return null;
-    }
-    return clientData.meta[selectedMonth] || null;
+    if (!clientData || !clientData.meta) return null;
+    return findBestAnalysisEntry(clientData.meta, selectedMonth);
   }
 
   function renderPills(element, items) {
