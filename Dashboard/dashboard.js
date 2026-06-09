@@ -389,7 +389,7 @@
       }
 
       state.availableClients = (state.performanceWorkbook && state.performanceWorkbook.clients) || [];
-      if (!ensureAuthorizedAccess()) {
+      if (!(await ensureAuthorizedAccess())) {
         return;
       }
       if (state.authorizedClientSlug && !state.isAdminAccess) {
@@ -769,7 +769,7 @@
     return window.location.pathname + "?" + params.toString();
   }
 
-  function ensureAuthorizedAccess() {
+  async function ensureAuthorizedAccess() {
     var session = getStoredAccessSession();
     if ((!session || !session.code) && !state.isAdminAccess) {
       var directParams = new URLSearchParams(window.location.search);
