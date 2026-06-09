@@ -506,7 +506,7 @@
       .select('*')
       .order('year', { ascending: true })
       .order('month', { ascending: true });
-    if (error) throw new Error('Could not load performance data from Supabase.');
+    if (error || !data) return normalizePerformanceWorkbook({ clients: [], rowsByClientSlug: {}, metaRowsByClientSlug: {} });
 
     const rowsByClientSlug = {};
     (data || []).forEach(function(row) {
@@ -879,7 +879,11 @@
     var params = getRouteParams();
     var routeClient = String(params.get("client") || "").trim();
     var routeCode = extractRouteAccessCode(routeClient);
-    var routeSlug = resolveRouteClientSlug(routeClient || authorizedSlug);
+    // Strip the 5-digit code suffix directly — don't use resolveRouteClientSlug here
+    // because that depends on state.availableClients being populated.
+    var routeSlug = routeClient
+      ? canonicalizeClientSlug(routeClient.replace(/\d{5}$/, "")) || authorizedSlug
+      : authorizedSlug;
     var requestedView = params.get("view") || "roi";
     var requestedMonth = bounds.max;
 
