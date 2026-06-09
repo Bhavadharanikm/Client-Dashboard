@@ -1296,3 +1296,33 @@
     font-size: 9px;
   }
 }
+
+@media (max-width: 640px) {
+  .dw-flat-metrics {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .dw-metric-revenue {
+    justify-content: flex-start;
+  }
+
+  .dw-revenue-card {
+    width: 100%;
+    text-align: left;
+  }
+
+  .dw-ngrid {
+    max-height: 80px;
+    overflow: hidden;
+  }
+
+  .dw-metric-occ,
+  .dw-metric-fill {
+    padding-top: 4px;
+  }
+
+  .dw-flat-card {
+    padding: 16px;
+  }
+}

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./Pricing%20Tool%20Files/pricing-tool.css?v=20260608a">
+  <link rel="stylesheet" href="./Pricing%20Tool%20Files/pricing-tool.css?v=20260608b">
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
@@ -3326,8 +3326,18 @@
       .meta-chart-grid.meta-chart-grid-3,
       .meta-discovery-summary-grid,
       .meta-campaign-grid,
-      .meta-insight-grid {
+      .meta-insight-grid,
+      .meta-channel-summary-grid {
         grid-template-columns: 1fr;
+      }
+
+      .meta-channel-card {
+        padding: 22px 20px 18px;
+        border-radius: 18px;
+      }
+
+      .meta-channel-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
       }
 
       .meta-header {
@@ -4574,6 +4584,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./dashboard.config.js?v=20260608d"></script>
   <script src="./Pricing%20Tool%20Files/pricing-tool.js?v=20260608o"></script>
-  <script src="./dashboard.js?v=20260608ai"></script>
+  <script src="./dashboard.js?v=20260608al"></script>
 </body>
 </html>

@@ -515,9 +515,49 @@
       if (!rowsByClientSlug[row.client_slug]) rowsByClientSlug[row.client_slug] = [];
       rowsByClientSlug[row.client_slug].push(row);
     });
+    const CLIENT_DISPLAY_NAMES = {
+      'american-river': 'American River Resort',
+      'apple-mountain': 'Apple Mountain',
+      'asheville-river-cabins': 'Asheville River Cabins',
+      'away2pa': 'Away2PA',
+      'awayframes': 'Awayframes',
+      'big-moon-ranch': 'Big Moon Ranch',
+      'bison-ridge-retreat': 'Bison Ridge Retreat',
+      'dwell-luxury-rentals': 'Dwell Luxury Rentals',
+      'endless-stays': 'Endless Stays',
+      'evergreen-cabins': 'Evergreen Cabins',
+      'flohom': 'Flohom',
+      'green-springs-inn': 'Green Springs Inn',
+      'hgm-client': 'HGM Client',
+      'hiawassee-glamping': 'Hiawassee Glamping',
+      'hillside-amble': 'Hillside Amble',
+      'home-base': 'Home Base',
+      'inspired-retreats': 'Inspired Retreats',
+      'myrinn': 'Myrinn',
+      'nature-nooks': 'Nature Nooks',
+      'paradise-pointe': 'Paradise Pointe',
+      'parker-reserve': 'Parker Reserve',
+      'pine-valley-cabins': 'Pine Valley Cabins',
+      'raven-rock-mountain': 'Raven Rock Mountain',
+      'red-white-blue-views': 'Red White Blue Views',
+      'reflections-resorts': 'Reflections Resorts',
+      'roundhouse-resort-spa': 'Roundhouse Resort & Spa',
+      'southern-illinois-cabins': 'Southern Illinois Cabins',
+      'starlight-haven-hot-springs': 'Starlight Haven – Hot Springs',
+      'starlight-haven-weiss-lake': 'Starlight Haven – Weiss Lake',
+      'stay-different': 'Stay Different',
+      'stay-on-30a': 'Stay on 30A',
+      'stay-saluda': 'Stay Saluda',
+      'stay-with-branch': 'Stay with Branch',
+      'stayluxe': 'StayLuxe',
+      'the-cohost-company': 'The Cohost Company',
+      'three-suns-cabins': 'Three Suns Cabins',
+      'treetop-escapes': 'Treetop Escapes',
+      'wanderin-star-farms': 'Wanderin Star Farms'
+    };
     const clients = Object.keys(rowsByClientSlug).map(function(slug) {
-      const rows = rowsByClientSlug[slug];
-      return { slug: slug, name: slug };
+      const displayName = CLIENT_DISPLAY_NAMES[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      return { slug: slug, name: displayName };
     });
     return normalizePerformanceWorkbook({ clients: clients, rowsByClientSlug: rowsByClientSlug, metaRowsByClientSlug: {} });
   }
@@ -545,7 +585,7 @@
     try {
       const { data, error } = await supabaseClient
         .from('roi_analysis')
-        .select('client_slug,period_key,range_label,performance_overview,key_takeaways');
+        .select('client_slug,period_key,range_label,key_takeaways');
       if (error || !data) return {};
       // Build structure: { [clientSlug]: { roi: { [periodKey]: { ... } } } }
       const result = {};
@@ -553,7 +593,6 @@
         if (!result[row.client_slug]) result[row.client_slug] = { roi: {} };
         result[row.client_slug].roi[row.period_key] = {
           range_label: row.range_label || "",
-          performance_overview: row.performance_overview || [],
           key_takeaways: row.key_takeaways || []
         };
       });
