@@ -512,8 +512,9 @@
 
     const rowsByClientSlug = {};
     (data || []).forEach(function(row) {
-      if (!rowsByClientSlug[row.client_slug]) rowsByClientSlug[row.client_slug] = [];
-      rowsByClientSlug[row.client_slug].push(row);
+      const slug = canonicalizeClientSlug(row.client_slug);
+      if (!rowsByClientSlug[slug]) rowsByClientSlug[slug] = [];
+      rowsByClientSlug[slug].push(row);
     });
     const CLIENT_DISPLAY_NAMES = {
       'american-river': 'American River Resort',
@@ -558,6 +559,8 @@
     const clients = Object.keys(rowsByClientSlug).map(function(slug) {
       const displayName = CLIENT_DISPLAY_NAMES[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
       return { slug: slug, name: displayName };
+    }).filter(function(client, index, arr) {
+      return arr.findIndex(function(c) { return c.slug === client.slug; }) === index;
     });
     return normalizePerformanceWorkbook({ clients: clients, rowsByClientSlug: rowsByClientSlug, metaRowsByClientSlug: {} });
   }
