@@ -867,6 +867,21 @@
 
   async function ensureAuthorizedAccess() {
     var session = getStoredAccessSession();
+
+    // If a ?t= token is present, check that its code matches the stored session.
+    // If it doesn't (user is visiting a different client's link), clear the stale
+    // session so the token's client gets a fresh login.
+    var rawSearch = new URLSearchParams(window.location.search);
+    if (rawSearch.get("t") && session && session.code && !session.isAdmin) {
+      var tokenParams = getRouteParams();
+      var tokenClientParam = String(tokenParams.get("client") || "").trim();
+      var tokenCode = extractRouteAccessCode(tokenClientParam);
+      if (tokenCode && normalizeAccessCode(tokenCode) !== normalizeAccessCode(session.code)) {
+        clearStoredAccessSession();
+        session = null;
+      }
+    }
+
     if ((!session || !session.code) && !state.isAdminAccess) {
       var directParams = getRouteParams();
       var directRouteClient = String(directParams.get("client") || "").trim();
