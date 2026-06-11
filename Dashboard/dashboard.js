@@ -889,7 +889,7 @@
       state.authorizedClientSlug = "";
       hideAccessGate();
 
-      var adminParams = new URLSearchParams(window.location.search);
+      var adminParams = getRouteParams();
       var routeClient = String(adminParams.get("client") || "").trim();
       var routeSlug = resolveRouteClientSlug(routeClient || DEFAULT_CLIENT_SLUG || (state.availableClients[0] && state.availableClients[0].slug) || "");
       var requestedView = adminParams.get("view") || "roi";
