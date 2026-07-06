@@ -2459,7 +2459,7 @@
         ? [
             '<div class="meta-chart-card" style="text-align:center;padding:48px 24px;">',
             '<div class="meta-chart-title" style="font-size:1rem;font-weight:600;margin-bottom:10px;letter-spacing:0.04em;text-transform:uppercase;">Report Coming Soon</div>',
-            '<div class="meta-chart-sub" style="font-size:0.9rem;line-height:1.7;">We're currently gathering your ' + escapeHtml(formatMonthKey(selectedMonth)) + ' Meta Ads data.<br>Your report will be available shortly.</div>',
+            '<div class="meta-chart-sub" style="font-size:0.9rem;line-height:1.7;">Currently gathering your ' + escapeHtml(formatMonthKey(selectedMonth)) + ' Meta Ads data. Your report will be available shortly.</div>',
             '</div>'
           ].join("")
         : '<div class="meta-chart-card"><div class="meta-chart-title">No Meta Ads data available</div><div class="meta-chart-sub">Select a different month or client to load a 3-month Meta Ads window.</div></div>';
