@@ -2446,25 +2446,35 @@
     const meta = state.metaModel || buildMetaModel(state.metaRows);
     const pendingMetaScrollKey = state.pendingMetaScrollKey;
     state.pendingMetaScrollKey = "";
+    var selectedMonthHasNoData = !hasRenderableMetaMonthData(selectedMonth, state.metaRows || []);
     var shouldShowMetaEmptyState = !meta.months.length
       || (
         canonicalizeClientSlug(state.client && state.client.slug) === "hillside-amble"
         && selectedMonth === "2026-05"
-        && !hasRenderableMetaMonthData(selectedMonth, state.metaRows || [])
+        && selectedMonthHasNoData
       );
-    if (shouldShowMetaEmptyState) {
+    var shouldShowComingSoon = !shouldShowMetaEmptyState && selectedMonthHasNoData;
+    if (shouldShowMetaEmptyState || shouldShowComingSoon) {
+      var emptyBody = shouldShowComingSoon
+        ? [
+            '<div class="meta-chart-card" style="text-align:center;padding:48px 24px;">',
+            '<div class="meta-chart-title" style="font-size:1.2rem;margin-bottom:12px;">📊 We\'re currently gathering your data</div>',
+            '<div class="meta-chart-sub" style="font-size:0.95rem;line-height:1.6;">Your ' + escapeHtml(formatMonthKey(selectedMonth)) + ' Meta Ads report is on its way.<br>Check back soon — it\'ll be ready before you know it!</div>',
+            '</div>'
+          ].join("")
+        : '<div class="meta-chart-card"><div class="meta-chart-title">No Meta Ads data available</div><div class="meta-chart-sub">Select a different month or client to load a 3-month Meta Ads window.</div></div>';
       els.metaView.innerHTML = [
         '<div class="meta-view">',
         '<div class="meta-header">',
         '<div>',
         '<div class="meta-title">' + escapeHtml(state.client.name) + "</div>",
-        '<div class="meta-legend"><div class="meta-legend-item">' + escapeHtml(formatMonthKey(selectedMonth)) + " — no workbook Meta Ads rows available</div></div>",
+        '<div class="meta-legend"><div class="meta-legend-item">' + escapeHtml(formatMonthKey(selectedMonth)) + "</div></div>",
         '<div class="meta-subtitle">Meta Ads Report</div>',
         "</div></div>",
         '<div class="meta-body">',
         '<section class="meta-section" id="meta-portfolio">',
         '<div class="meta-section-label">Portfolio snapshot — selected months</div>',
-        '<div class="meta-chart-card"><div class="meta-chart-title">No Meta Ads data available</div><div class="meta-chart-sub">Select a different month or client to load a 3-month Meta Ads window.</div></div>',
+        emptyBody,
         "</section></div></div>"
       ].join("");
       destroyCharts("meta-");
