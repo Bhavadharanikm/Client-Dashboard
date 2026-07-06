@@ -53,6 +53,8 @@
     sidebarDashboardTitle: document.getElementById("sidebarDashboardTitle"),
     sidebarCurrentMonth: document.getElementById("sidebarCurrentMonth"),
     clientNameHeading: document.getElementById("clientNameHeading"),
+    exportCsvBtn: document.getElementById("exportCsvBtn"),
+    exportMetaCsvBtn: document.getElementById("exportMetaCsvBtn"),
     dateRangeLabel: document.getElementById("dateRangeLabel"),
     clientSelect: document.getElementById("clientSelect"),
     monthInput: document.getElementById("monthInput"),
@@ -221,6 +223,12 @@
       syncMonthInputBounds(els.clientSelect.value);
     });
     bindSidebarDrawer();
+    if (els.exportCsvBtn) {
+      els.exportCsvBtn.addEventListener("click", exportClientDataCSV);
+    }
+    if (els.exportMetaCsvBtn) {
+      els.exportMetaCsvBtn.addEventListener("click", exportMetaDataCSV);
+    }
     if (els.downloadPdfBtn) {
       els.downloadPdfBtn.addEventListener("click", function () {
         window.print();
@@ -416,6 +424,100 @@
       console.error(error);
       showMessage(error.message || "Could not load the client list.", "error");
     }
+  }
+
+  function exportClientDataCSV() {
+    if (!state.client) return;
+    var slug = canonicalizeClientSlug(state.client.slug);
+    var rows = (state.performanceWorkbook && state.performanceWorkbook.rowsByClientSlug && state.performanceWorkbook.rowsByClientSlug[slug]) || [];
+    if (!rows.length) {
+      showMessage("No data available to export.", "error");
+      return;
+    }
+    var MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var headers = [
+      "Period","Total Booking Revenue","Direct Booking Revenue","Direct Booking Split %",
+      "LY Total Booking Revenue","LY Direct Booking Revenue","LY Direct Booking Split %",
+      "Total Views","IG Views","FB Views","TikTok Views",
+      "Total Followers","IG Followers","FB Followers","TikTok Followers",
+      "Website Traffic","New Leads","Total Leads","Lead Growth %"
+    ];
+    var sorted = rows.slice().sort(function(a,b){ return (a.year*100+a.month) - (b.year*100+b.month); });
+    var lines = [headers.join(",")];
+    sorted.forEach(function(r) {
+      var period = (MONTH_NAMES[(r.month||1)-1] || "") + " " + (r.year || "");
+      var pct = function(v){ return v != null ? (parseFloat(v)*100).toFixed(1) + "%" : ""; };
+      var num = function(v){ return v != null ? parseFloat(v) : ""; };
+      lines.push([
+        period,
+        num(r.total_booking_revenue), num(r.direct_booking_revenue), pct(r.direct_booking_split_pct),
+        num(r.ly_total_booking_revenue), num(r.ly_direct_booking_revenue), pct(r.ly_direct_booking_split_pct),
+        num(r.total_views), num(r.ig_views), num(r.fb_views), num(r.tiktok_views),
+        num(r.ttl_followers), num(r.ig_followers), num(r.fb_followers), num(r.tiktok_followers),
+        num(r.website_traffic), num(r.new_leads), num(r.ttl_leads), pct(r.lead_growth_pct)
+      ].join(","));
+    });
+    var csv = lines.join("\n");
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = state.client.name.replace(/[^a-zA-Z0-9]/g, "_") + "_Performance_Data.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportMetaDataCSV() {
+    if (!state.client) return;
+    var slug = canonicalizeClientSlug(state.client.slug);
+    var workbook = state.performanceWorkbook;
+    var rows = (workbook && workbook.metaRowsByClientSlug && workbook.metaRowsByClientSlug[slug]) || [];
+    if (!rows.length) {
+      showMessage("No Meta Ads data available to export.", "error");
+      return;
+    }
+    // Build a lookup of direct_booking_revenue by month key from performance data
+    var perfRows = (workbook && workbook.rowsByClientSlug && workbook.rowsByClientSlug[slug]) || [];
+    var directRevenueByMonth = {};
+    perfRows.forEach(function(r) {
+      var key = r.year + "-" + String(r.month).padStart(2, "0");
+      directRevenueByMonth[key] = r.direct_booking_revenue;
+    });
+    var MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var headers = [
+      "Month","Campaign","Spend","Revenue","ROAS",
+      "Impressions","Visits","Leads/Followers","IG Bio Leads",
+      "Bookings (Email)","Bookings (FB)","Cost Per Booking",
+      "Direct Booking Revenue"
+    ];
+    var sorted = rows.slice().sort(function(a,b){
+      return (a.year*100+a.month) - (b.year*100+b.month) || (a.campaign_type||"").localeCompare(b.campaign_type||"");
+    });
+    var lines = [headers.join(",")];
+    sorted.forEach(function(r) {
+      var period = (MONTH_NAMES[(r.month||1)-1] || "") + " " + (r.year || "");
+      var monthKey = r.year + "-" + String(r.month).padStart(2, "0");
+      var num = function(v){ return v != null && v !== "" ? parseFloat(parseFloat(v).toFixed(2)) : ""; };
+      lines.push([
+        period, r.campaign_type || "",
+        num(r.spend), num(r.revenue), num(r.roas),
+        num(r.impressions), num(r.profile_visits), num(r.leads_followers), num(r.ig_bio_leads),
+        num(r.bookings_email_matched), num(r.bookings_fb_events), num(r.cost_per_booking),
+        num(directRevenueByMonth[monthKey])
+      ].join(","));
+    });
+    var csv = lines.join("\n");
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = state.client.name.replace(/[^a-zA-Z0-9]/g, "_") + "_Meta_Ads_Data.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   async function loadDashboard() {
@@ -1580,7 +1682,7 @@
       els.leadPipelineNote,
       latestMonth ? "Total leads as of " + latestMonth.label : "Total leads current month"
     );
-    setText(els.leadAvgCostPerLead, formatPercentPoints(currentLeadGrowth));
+    setText(els.leadAvgCostPerLead, formatPercentPoints(currentLeadGrowth * 100));
     setText(els.leadGrowthMonthLabel, currentMonthBracketLabel);
     setText(
       els.leadGrowthNote,
@@ -4049,6 +4151,10 @@
     if (heading) {
       heading.textContent = client.name;
     }
+    var exportGroup = document.getElementById("exportBtnGroup");
+    if (exportGroup) exportGroup.style.display = "flex";
+    var perfWrap = document.getElementById("exportPerfBtnWrap");
+    if (perfWrap) perfWrap.style.display = "flex";
   }
 
   function applyViewState() {
@@ -4066,6 +4172,12 @@
     els.metaView.classList.toggle("hidden", !isMeta || isPricing);
     if (els.pricingView) {
       els.pricingView.classList.toggle("hidden", !isPricing || !state.pricingToolAvailable);
+    }
+    if (state.client) {
+      var perfWrap = document.getElementById("exportPerfBtnWrap");
+      var metaWrap = document.getElementById("exportMetaBtnWrap");
+      if (perfWrap) perfWrap.style.display = (!isMeta && !isPricing) ? "flex" : "none";
+      if (metaWrap) metaWrap.style.display = isMeta ? "flex" : "none";
     }
   }
 

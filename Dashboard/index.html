@@ -3489,6 +3489,51 @@
       letter-spacing: -0.01em;
     }
 
+    .export-btn-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .export-icon-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(37,99,235,0.4);
+      transition: background 0.18s, box-shadow 0.18s, transform 0.15s;
+      flex-shrink: 0;
+    }
+    .export-icon-btn:hover {
+      background: #1d4ed8;
+      box-shadow: 0 6px 24px rgba(37,99,235,0.55);
+      transform: translateY(-2px);
+    }
+    .export-tooltip {
+      visibility: hidden;
+      opacity: 0;
+      background: rgba(30,32,48,0.92);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+      margin-right: 10px;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .export-btn-wrap:hover .export-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
     .pp-summary-strip {
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -4581,9 +4626,29 @@
     </main>
   </div>
 
+  <div id="exportBtnGroup" style="position:fixed;bottom:32px;right:32px;z-index:999;display:none;flex-direction:column;gap:10px;align-items:flex-end;">
+    <div class="export-btn-wrap" style="display:none;" id="exportMetaBtnWrap">
+      <span class="export-tooltip">Export Meta Data</span>
+      <button id="exportMetaCsvBtn" class="export-icon-btn" aria-label="Export Meta Data">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+          <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="export-btn-wrap" id="exportPerfBtnWrap">
+      <span class="export-tooltip">Export Performance</span>
+      <button id="exportCsvBtn" class="export-icon-btn" aria-label="Export Performance">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+          <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./dashboard.config.js?v=20260608d"></script>
   <script src="./Pricing%20Tool%20Files/pricing-tool.js?v=20260608o"></script>
-  <script src="./dashboard.js?v=20260611b"></script>
+  <script src="./dashboard.js?v=20260611c"></script>
 </body>
 </html>
