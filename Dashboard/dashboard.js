@@ -2519,7 +2519,7 @@
       return false;
     }
     var monthRows = (rows || []).filter(function (row) {
-      return toMonthKey(row.year, row.month) === selectedMonth;
+      return (row.key || toMonthKey(row.year, row.month)) === selectedMonth;
     });
     if (!monthRows.length) {
       return false;
