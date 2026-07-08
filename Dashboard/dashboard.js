@@ -2557,7 +2557,8 @@
   }
 
   function hasRevenueIntelligenceMonthData(selectedMonth) {
-    return selectedMonth === "2026-05";
+    const source = state.revenueIntelligenceData || {};
+    return Array.isArray(source.propertyBreakdown) && source.propertyBreakdown.length > 0;
   }
 
   function splitRevenueIntelligenceLocation(name) {
