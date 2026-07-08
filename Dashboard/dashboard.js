@@ -180,6 +180,7 @@
     revenueSplitPeakMonth: document.getElementById("revenueSplitPeakMonth"),
     revenueChartSub: document.getElementById("revenueChartSub"),
     bookingSplitChartSub: document.getElementById("bookingSplitChartSub"),
+    funnelMonthLabel: document.getElementById("funnelMonthLabel"),
     funnelViewsFill: document.getElementById("funnelViewsFill"),
     funnelViewsValue: document.getElementById("funnelViewsValue"),
     funnelFollowersConv: document.getElementById("funnelFollowersConv"),
@@ -1519,6 +1520,7 @@
   }
 
   function renderRoiDashboard(selectedMonth) {
+    if (els.funnelMonthLabel) els.funnelMonthLabel.textContent = selectedMonth ? "(" + formatMonthKey(selectedMonth) + ")" : "";
     const totals = summarizeRoi(state.roiMonths);
     const metaSpendTotal = sumMetric(state.metaRows || [], "spend");
     const effectiveAdSpend = metaSpendTotal > 0 ? metaSpendTotal : totals.adSpend;
