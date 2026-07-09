@@ -3,6 +3,7 @@
 import { DASHBOARD_CONFIG } from "./config";
 
 export const CLIENT_ALIASES: Record<string, string[]> = {
+  "american-river": ["american-river", "american-river-resort"],
   "apple-mountain": ["apple-mountain", "apple-mountain-resort"],
   "casa-oso": ["casa-oso", "casa-oso-ad-account"],
   "bison-ridge-retreat": ["bison-ridge", "bison-ridge-retreat"],
