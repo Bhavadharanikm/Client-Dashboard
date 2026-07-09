@@ -138,6 +138,10 @@
 
 .super-admin-create-card {
   padding: 20px 24px;
+  /* Overrides .super-admin-table-wrap's overflow: hidden (needed there to
+     clip a real <table>'s square corners) — this card instead holds a
+     MonthPicker whose popover needs to escape the card's bounds. */
+  overflow: visible;
 }
 
 .super-admin-create-form {

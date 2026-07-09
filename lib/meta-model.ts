@@ -96,6 +96,18 @@ export function isIncludedMetaCampaign(campaignType: unknown): boolean {
   return normalized.indexOf("discovery") !== -1 || normalized.indexOf("retarget") !== -1;
 }
 
+/**
+ * Bookings attribution is channel-specific, not additive: Discovery bookings
+ * are tracked via email match, Retargeting bookings via FB pixel events. A
+ * row can carry a non-zero value in both fields (e.g. a Retargeting row with
+ * bookingsEmail === bookingsFb) because that's the *same* set of bookings
+ * attributed two ways, not two distinct sets — summing them double-counts.
+ */
+export function attributedBookings(campaignType: string, bookingsEmail: unknown, bookingsFb: unknown): number {
+  const isRetargeting = campaignType.toLowerCase().indexOf("retarget") !== -1;
+  return isRetargeting ? numeric(bookingsFb) : numeric(bookingsEmail);
+}
+
 function nullableNumericOrRaw(raw: unknown): number | null {
   return raw === null || raw === undefined ? null : numeric(raw);
 }
@@ -149,7 +161,7 @@ export function filterMetaRows(monthKeys: string[], rows: PerformanceRow[]): Met
       base.bookingsEmail = numeric(base.bookingsEmail) + numeric(row.bookingsEmail) || base.bookingsEmail;
       base.bookingsFb = numeric(base.bookingsFb) + numeric(row.bookingsFb) || base.bookingsFb;
       base.revenue = numeric(base.revenue) + numeric(row.revenue);
-      const totalBookings = numeric(base.bookingsEmail) + numeric(base.bookingsFb);
+      const totalBookings = attributedBookings(base.campaignType, base.bookingsEmail, base.bookingsFb);
       base.roas = base.spend > 0 ? base.revenue / base.spend : 0;
       base.costPerBooking = totalBookings > 0 ? base.spend / totalBookings : null;
       base.avgBookingValue = base.avgBookingValue || row.avgBookingValue;
@@ -192,6 +204,7 @@ export function buildMetaModel(rows: MetaRow[]): MetaModel {
     month.avgBookingValue = Math.max(month.avgBookingValue, numeric(row.avgBookingValue));
     month.maxEmailBookings += numeric(row.bookingsEmail);
     month.maxFbBookings += numeric(row.bookingsFb);
+    month.totalBookings += attributedBookings(row.campaignType, row.bookingsEmail, row.bookingsFb);
 
     if (!rowsByCampaign[row.campaignType]) {
       rowsByCampaign[row.campaignType] = [];
@@ -200,12 +213,7 @@ export function buildMetaModel(rows: MetaRow[]): MetaModel {
     rowsByCampaign[row.campaignType].push(row);
   });
 
-  const months = Object.values(monthMap)
-    .sort((a, b) => a.key.localeCompare(b.key))
-    .map((month) => {
-      month.totalBookings = month.maxEmailBookings + month.maxFbBookings;
-      return month;
-    });
+  const months = Object.values(monthMap).sort((a, b) => a.key.localeCompare(b.key));
 
   campaignOrder.forEach((campaignType) => {
     rowsByCampaign[campaignType].sort((a, b) => a.key.localeCompare(b.key));
@@ -269,7 +277,7 @@ export function chooseEfficiencyMetric(rows: MetaRow[]): { key: keyof MetaRow; l
 }
 
 export function totalCampaignBookings(row: MetaRow): number {
-  return numeric(row.bookingsEmail) + numeric(row.bookingsFb);
+  return attributedBookings(row.campaignType, row.bookingsEmail, row.bookingsFb);
 }
 
 /** Ported verbatim from metaCampaignToggleKey() — key convention used by useDashboardState's metaExpandedCampaigns. */
@@ -586,7 +594,22 @@ export function buildMetaViewModel(
   const roiRows = getPerformanceRoiRows(workbook, canonicalSlug);
   const rawMetaRows = getMetaRows(workbook, canonicalSlug);
 
-  const monthKeys = getHistoricalMonthKeys(roiRows, selectedMonth, 3);
+  // The 3-month window is meant to reflect whatever data actually exists, not
+  // just Performance rows — a client can have dashboard_meta_ads rows for a
+  // month before dashboard_performance has been synced for it (the two are
+  // synced independently from the Super Admin sheet-sync panel). Union both
+  // sources' month keys so Meta data isn't silently dropped while it waits on
+  // a matching Performance row; direct-revenue overlay below already
+  // tolerates a month with no ROI row by falling back to 0.
+  const roiMonthKeys = getHistoricalMonthKeys(roiRows, selectedMonth, 3);
+  const metaMonthKeys = Array.from(
+    rawMetaRows.reduce<Set<string>>((set, row) => {
+      const key = toMonthKey(row.year, row.month);
+      if (key <= selectedMonth) set.add(key);
+      return set;
+    }, new Set<string>())
+  );
+  const monthKeys = Array.from(new Set([...roiMonthKeys, ...metaMonthKeys])).sort().slice(-3);
   const filteredRows = filterMetaRows(monthKeys, rawMetaRows);
   const meta = normalizeMetaSpendBoundaryMonths(buildMetaModel(filteredRows), canonicalSlug);
 

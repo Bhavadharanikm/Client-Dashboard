@@ -53,6 +53,7 @@ export const CLIENT_DISPLAY_NAMES: Record<string, string> = {
   "stay-saluda": "Stay Saluda",
   "stay-with-branch": "Stay with Branch",
   stayluxe: "StayLuxe",
+  "t-berg-falls": "Tàberg Falls",
   "the-cohost-company": "The Cohost Company",
   "three-suns-cabins": "Three Suns Cabins",
   "treetop-escapes": "Treetop Escapes",
@@ -123,10 +124,17 @@ export function getMetaRows(workbook: PerformanceWorkbook, slug: string): Perfor
   return workbook.metaRowsByClientSlug[slug] || [];
 }
 
+/**
+ * Every month with data for this client, from EITHER table — Performance and
+ * Meta Ads are synced independently (see the Super Admin sheet-sync panel),
+ * so a month can have one without the other yet. Union both so the Month
+ * picker doesn't gray out a month just because only one side has synced.
+ */
 export function getAllMonthKeys(workbook: PerformanceWorkbook, slug: string): string[] {
-  return getPerformanceRoiRows(workbook, slug)
-    .map((row) => toMonthKey(row.year, row.month))
-    .sort();
+  const keys = new Set<string>();
+  getPerformanceRoiRows(workbook, slug).forEach((row) => keys.add(toMonthKey(row.year, row.month)));
+  getMetaRows(workbook, slug).forEach((row) => keys.add(toMonthKey(row.year, row.month)));
+  return Array.from(keys).sort();
 }
 
 export function getClientMonthBounds(workbook: PerformanceWorkbook, slug: string): { min: string; max: string } {

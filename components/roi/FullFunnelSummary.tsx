@@ -1,7 +1,8 @@
 import type { RoiViewModel } from "@/lib/roi-metrics";
 
 export function FullFunnelSummary({ model }: { model: RoiViewModel }) {
-  const { funnel, takeawayPeriodLabel, executiveSummary } = model;
+  const { funnel, takeawayPeriodLabel, executiveSummary, latestMonth } = model;
+  const monthLabel = latestMonth?.label || "";
 
   return (
     <section className="section reveal" id="full-funnel-summary">
@@ -13,7 +14,12 @@ export function FullFunnelSummary({ model }: { model: RoiViewModel }) {
       </div>
       <div className="pp-grid pp-grid-2">
         <div className="pp-glass pp-funnel-card">
-          <div className="pp-chart-title pp-funnel-title">Conversion Funnel</div>
+          <div className="pp-chart-title pp-funnel-title">
+            Conversion Funnel{" "}
+            {monthLabel && (
+              <span style={{ fontSize: "0.8em", fontWeight: 500, opacity: 0.5, whiteSpace: "nowrap" }}>({monthLabel})</span>
+            )}
+          </div>
           <div className="pp-funnel-grid">
             <div className="pp-f-row">
               <div className="pp-f-label">Content Views</div>

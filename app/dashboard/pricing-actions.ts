@@ -16,6 +16,7 @@
 
 import { canonicalizeClientSlug, PRICING_ENABLED_SLUGS } from "@/lib/client-slug";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
+import { resolveSession } from "@/lib/server/session";
 import type { RawPricingData, RawPricingWindowRow } from "@/lib/pricing-model";
 
 const REVENUE_INTELLIGENCE_API_URL = "https://hiddengem-ai.netlify.app/api/v1/public/revenue-intelligence";
@@ -113,6 +114,20 @@ export async function getRevenueIntelligence(clientSlug: string): Promise<RawPri
   // dashboard.js — intentionally narrower than isPricingToolClient(), which
   // also allows config-driven client slugs for the static-JSON branch.
   if (!PRICING_ENABLED_SLUGS.includes(canonicalSlug)) {
+    return null;
+  }
+
+  // Server Actions are independently network-reachable regardless of which
+  // client the calling page's UI has selected — without this check, any
+  // logged-in client could call this action with a DIFFERENT client's slug
+  // and receive that other client's live revenue/occupancy data. Admins
+  // browse on behalf of any client (no clientSlug of their own to compare
+  // against), so only non-admin sessions are restricted to their own slug.
+  const session = await resolveSession();
+  if (!session.isAuthenticated) {
+    return null;
+  }
+  if (!session.isAdmin && session.clientSlug !== canonicalSlug) {
     return null;
   }
 

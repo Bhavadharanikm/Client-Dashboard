@@ -35,7 +35,12 @@ export function MonthPicker({
   placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Rough height of the popover (year row + 3-row grid + footer + margins) —
+  // used only to decide flip direction before the popover has actually
+  // rendered/measured itself, so an estimate is fine here.
+  const ESTIMATED_POPOVER_HEIGHT = 300;
 
   const availableSet = useMemo(() => new Set(availableMonths), [availableMonths]);
   const availableYears = useMemo(() => {
@@ -91,19 +96,28 @@ export function MonthPicker({
     }
   }
 
+  function handleToggle() {
+    if (!open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUpward(spaceBelow < ESTIMATED_POPOVER_HEIGHT && rect.top > spaceBelow);
+    }
+    setOpen((prev) => !prev);
+  }
+
   return (
     <div className="month-picker" ref={containerRef}>
       <button
         type="button"
         id={id}
         className="month-picker-trigger"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={handleToggle}
       >
         {value ? formatDisplay(value) : <span className="month-picker-placeholder">{placeholder}</span>}
       </button>
 
       {open && (
-        <div className="month-picker-popover">
+        <div className={`month-picker-popover${openUpward ? " opens-upward" : ""}`}>
           <div className="month-picker-year-row">
             <button type="button" className="month-picker-nav" onClick={() => setDisplayYear((y) => y - 1)} aria-label="Previous year">
               ‹

@@ -10,12 +10,20 @@ export type DashboardSession = {
   clientSlug: string | null;
 };
 
-async function resolveSession(): Promise<{
+export type ResolvedSession = {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
   clientSlug: string | null;
-}> {
+};
+
+/**
+ * Non-redirecting session lookup, for Server Actions that need to check who's
+ * calling but must return a value (e.g. null) on failure rather than redirect
+ * a page that isn't rendering. The page-guard functions below (which DO
+ * redirect) are for Server Components; use this one from Server Actions.
+ */
+export async function resolveSession(): Promise<ResolvedSession> {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
