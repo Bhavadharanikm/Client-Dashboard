@@ -1,5 +1,5 @@
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
-import { ADMIN_EMAIL } from "@/lib/server/admin-identity";
+import { isAdminEmail } from "@/lib/server/admin-identity";
 import { canonicalizeClientSlug } from "@/lib/client-slug";
 
 /**
@@ -25,7 +25,7 @@ export async function getClientAccessCodes(): Promise<Record<string, string>> {
     const codeByUserId = new Map<string, string>();
     for (const user of usersPage.users) {
       const email = user.email || "";
-      if (!email.endsWith("@hiddengem.media") || email === ADMIN_EMAIL) {
+      if (!email.endsWith("@hiddengem.media") || isAdminEmail(email)) {
         continue;
       }
       codeByUserId.set(user.id, email.slice(0, email.indexOf("@")));

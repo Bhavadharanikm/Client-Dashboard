@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { checkAndRecordLoginAttempt } from "@/lib/server/rate-limit";
-import { ADMIN_EMAIL } from "@/lib/server/admin-identity";
+import { isAdminEmail } from "@/lib/server/admin-identity";
 
 export type AdminLoginState = { error: string | null };
 
@@ -34,15 +34,15 @@ export async function adminLogin(_prevState: AdminLoginState, formData: FormData
     return { error: GENERIC_ERROR };
   }
 
-  // Critical check: this form must never grant admin access to anyone but the
+  // Critical check: this form must never grant admin access to anyone but a
   // real admin account, even though Supabase will happily authenticate ANY
   // valid credential pair typed in here — including a client's own
-  // {code}@hiddengem.media / {code} login. If the authenticated user isn't the
+  // {code}@hiddengem.media / {code} login. If the authenticated user isn't an
   // admin account, undo the sign-in immediately and reject.
-  if (data.user.email !== ADMIN_EMAIL) {
+  if (!isAdminEmail(data.user.email)) {
     await supabase.auth.signOut();
     return { error: GENERIC_ERROR };
   }
 
-  redirect("/dashboard");
+  redirect("/admin/dashboard");
 }

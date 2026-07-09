@@ -1,15 +1,22 @@
-import { getDashboardSession } from "@/lib/server/session";
+import { getAdminDashboardSession } from "@/lib/server/session";
 import { loadDashboardBootstrap } from "@/lib/server/dashboard-data";
 import { DashboardProvider } from "@/hooks/useDashboardState";
 import { DashboardDataProvider } from "@/hooks/useDashboardData";
 import { DashboardShell } from "@/components/shell/DashboardShell";
 
-export default async function DashboardPage() {
-  const session = await getDashboardSession();
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ client?: string; month?: string }>;
+}) {
+  await getAdminDashboardSession();
+  const params = await searchParams;
 
   const bootstrap = await loadDashboardBootstrap({
-    isAdmin: false,
-    clientSlug: session.clientSlug,
+    isAdmin: true,
+    clientSlug: null,
+    requestedClient: params.client,
+    requestedMonth: params.month,
   });
 
   return (
@@ -21,7 +28,7 @@ export default async function DashboardPage() {
     >
       <DashboardProvider
         availableClients={bootstrap.availableClients}
-        isAdmin={false}
+        isAdmin={true}
         initialClientSlug={bootstrap.initialClientSlug}
         initialMonth={bootstrap.initialMonth}
       >
