@@ -1388,8 +1388,9 @@
         base.bookingsEmail = (numeric(base.bookingsEmail) + numeric(row.bookingsEmail)) || base.bookingsEmail;
         base.bookingsFb   = (numeric(base.bookingsFb) + numeric(row.bookingsFb)) || base.bookingsFb;
         base.revenue      = (numeric(base.revenue) + numeric(row.revenue));
-        // Recalculate derived metrics
-        const totalBookings = numeric(base.bookingsEmail) + numeric(base.bookingsFb);
+        // Recalculate derived metrics — Discovery uses email bookings, Retargeting uses FB bookings
+        const isDiscovery = base.campaignType && base.campaignType.toLowerCase() === 'discovery';
+        const totalBookings = isDiscovery ? numeric(base.bookingsEmail) : numeric(base.bookingsFb);
         base.roas = base.spend > 0 ? base.revenue / base.spend : 0;
         base.costPerBooking = totalBookings > 0 ? base.spend / totalBookings : null;
         // Keep avg booking value from whichever row has it
@@ -3928,8 +3929,11 @@
       monthMap[row.key].attributedRevenue += numeric(row.revenue);
       monthMap[row.key].blendedRoas = Math.max(monthMap[row.key].blendedRoas, numeric(row.blendedRoas) || numeric(row.roas));
       monthMap[row.key].avgBookingValue = Math.max(monthMap[row.key].avgBookingValue, numeric(row.avgBookingValue));
-      monthMap[row.key].maxEmailBookings += numeric(row.bookingsEmail);
-      monthMap[row.key].maxFbBookings += numeric(row.bookingsFb);
+      if (row.campaignType && row.campaignType.toLowerCase() === 'discovery') {
+        monthMap[row.key].maxEmailBookings += numeric(row.bookingsEmail);
+      } else {
+        monthMap[row.key].maxFbBookings += numeric(row.bookingsFb);
+      }
 
       if (!rowsByCampaign[row.campaignType]) {
         rowsByCampaign[row.campaignType] = [];
