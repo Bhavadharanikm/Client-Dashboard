@@ -1,0 +1,323 @@
+.super-admin-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  font-family: "Inter", sans-serif;
+  color: #0f172a;
+}
+
+.super-admin-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.super-admin-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.super-admin-back-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.super-admin-back-link:hover {
+  text-decoration: underline;
+}
+
+.super-admin-shell h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.super-admin-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1.5px solid #e2e8f0;
+  margin-bottom: 28px;
+}
+
+.super-admin-tab {
+  border: none;
+  background: none;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1.5px;
+}
+
+.super-admin-tab:hover {
+  color: #2563eb;
+}
+
+.super-admin-tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.super-admin-table-wrap {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+}
+
+.super-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.super-admin-table th,
+.super-admin-table td {
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.super-admin-table th {
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.super-admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.super-admin-row-codeless {
+  background: #fffbeb;
+}
+
+.super-admin-table code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-right: 4px;
+}
+
+.super-admin-muted {
+  color: #94a3b8;
+}
+
+.super-admin-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.super-admin-badge-warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.super-admin-empty {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.super-admin-shell section {
+  margin-bottom: 32px;
+}
+
+.super-admin-create-card {
+  padding: 20px 24px;
+}
+
+.super-admin-create-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.super-admin-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+}
+
+.super-admin-field-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.super-admin-input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #fff;
+}
+
+.super-admin-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.super-admin-submit-btn {
+  height: 40px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.super-admin-submit-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.super-admin-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.super-admin-error {
+  margin: 14px 24px 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.super-admin-success-code {
+  margin: 14px 24px 4px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  border: 1.5px solid #a7f3d0;
+}
+
+.super-admin-success-code-label {
+  font-size: 13px;
+  color: #065f46;
+  margin-bottom: 8px;
+}
+
+.super-admin-success-code-value {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #047857;
+  margin-bottom: 4px;
+}
+
+.super-admin-success-code-email {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  color: #059669;
+}
+
+.super-admin-delete-btn {
+  border: none;
+  background: none;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.super-admin-delete-btn:hover {
+  text-decoration: underline;
+}
+
+.super-admin-delete-confirm {
+  font-size: 12px;
+  color: #334155;
+  max-width: 260px;
+}
+
+.super-admin-delete-confirm p {
+  margin-bottom: 6px;
+}
+
+.super-admin-delete-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.super-admin-delete-confirm-btn {
+  border: none;
+  border-radius: 6px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.super-admin-delete-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.super-admin-cancel-btn {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.super-admin-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.super-admin-sheet-result {
+  margin-top: 18px;
+  padding: 0 24px 20px;
+}
+
+.super-admin-sheet-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.super-admin-sheet-pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  overflow: auto;
+  max-height: 400px;
+}

@@ -57,6 +57,7 @@
     .sidebar {
       width: 220px;
       position: fixed;
+      z-index: 100;
       height: 100vh;
       background: #ffffff;
       box-shadow: 2px 0 12px rgba(0, 0, 0, 0.04);
@@ -139,7 +140,6 @@
       background: #ffffff;
       box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 8px 22px rgba(15, 23, 42, 0.03);
       transition: border-color 180ms ease, box-shadow 180ms ease;
-      overflow: hidden;
     }
 
     .sidebar-control-shell:hover {

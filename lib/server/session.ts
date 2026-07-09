@@ -1,32 +1,38 @@
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { canonicalizeClientSlug } from "@/lib/client-slug";
-import { isAdminEmail } from "@/lib/server/admin-identity";
+import { isAdminEmail, isSuperAdminEmail } from "@/lib/server/admin-identity";
 
 export type DashboardSession = {
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   /** null for admins — they choose a client via the sidebar, not via their own account */
   clientSlug: string | null;
 };
 
-async function resolveSession(): Promise<{ isAuthenticated: boolean; isAdmin: boolean; clientSlug: string | null }> {
+async function resolveSession(): Promise<{
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  clientSlug: string | null;
+}> {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { isAuthenticated: false, isAdmin: false, clientSlug: null };
+    return { isAuthenticated: false, isAdmin: false, isSuperAdmin: false, clientSlug: null };
   }
 
   const isAdmin = isAdminEmail(user.email);
   if (isAdmin) {
-    return { isAuthenticated: true, isAdmin: true, clientSlug: null };
+    return { isAuthenticated: true, isAdmin: true, isSuperAdmin: isSuperAdminEmail(user.email), clientSlug: null };
   }
 
   const { data: profile } = await supabase.from("user_profiles").select("client_slug").single();
   const clientSlug = canonicalizeClientSlug(profile?.client_slug ?? "");
-  return { isAuthenticated: true, isAdmin: false, clientSlug };
+  return { isAuthenticated: true, isAdmin: false, isSuperAdmin: false, clientSlug };
 }
 
 /**
@@ -46,7 +52,7 @@ export async function getDashboardSession(): Promise<DashboardSession> {
     redirect("/admin/dashboard");
   }
 
-  return { isAdmin: false, clientSlug };
+  return { isAdmin: false, isSuperAdmin: false, clientSlug };
 }
 
 /**
@@ -56,7 +62,7 @@ export async function getDashboardSession(): Promise<DashboardSession> {
  * admin login page, not the client one.
  */
 export async function getAdminDashboardSession(): Promise<DashboardSession> {
-  const { isAuthenticated, isAdmin } = await resolveSession();
+  const { isAuthenticated, isAdmin, isSuperAdmin } = await resolveSession();
 
   if (!isAuthenticated) {
     redirect("/admin/login");
@@ -65,5 +71,27 @@ export async function getAdminDashboardSession(): Promise<DashboardSession> {
     redirect("/dashboard");
   }
 
-  return { isAdmin: true, clientSlug: null };
+  return { isAdmin: true, isSuperAdmin, clientSlug: null };
+}
+
+/**
+ * Guards /admin/super — the super-admin-only area. A regular admin with a
+ * valid session gets bounced to their own /admin/dashboard rather than shown
+ * anything super-admin-shaped, even transiently; same defense-in-depth
+ * philosophy as the two guards above.
+ */
+export async function getSuperAdminSession(): Promise<DashboardSession> {
+  const { isAuthenticated, isAdmin, isSuperAdmin } = await resolveSession();
+
+  if (!isAuthenticated) {
+    redirect("/admin/login");
+  }
+  if (!isAdmin) {
+    redirect("/dashboard");
+  }
+  if (!isSuperAdmin) {
+    redirect("/admin/dashboard");
+  }
+
+  return { isAdmin: true, isSuperAdmin: true, clientSlug: null };
 }

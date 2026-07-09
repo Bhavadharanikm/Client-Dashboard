@@ -9,7 +9,7 @@ export default async function AdminDashboardPage({
 }: {
   searchParams: Promise<{ client?: string; month?: string }>;
 }) {
-  await getAdminDashboardSession();
+  const session = await getAdminDashboardSession();
   const params = await searchParams;
 
   const bootstrap = await loadDashboardBootstrap({
@@ -29,6 +29,7 @@ export default async function AdminDashboardPage({
       <DashboardProvider
         availableClients={bootstrap.availableClients}
         isAdmin={true}
+        isSuperAdmin={session.isSuperAdmin}
         initialClientSlug={bootstrap.initialClientSlug}
         initialMonth={bootstrap.initialMonth}
       >

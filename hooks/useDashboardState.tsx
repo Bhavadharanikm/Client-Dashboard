@@ -8,6 +8,7 @@ export type DashboardView = "roi" | "meta" | "pricing";
 type DashboardState = {
   availableClients: Client[];
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   /** Committed selection — this is what every view actually renders. */
   selectedClientSlug: string;
   selectedMonth: string;
@@ -60,18 +61,21 @@ export function DashboardProvider({
   children,
   availableClients,
   isAdmin,
+  isSuperAdmin = false,
   initialClientSlug,
   initialMonth,
 }: {
   children: ReactNode;
   availableClients: Client[];
   isAdmin: boolean;
+  isSuperAdmin?: boolean;
   initialClientSlug: string;
   initialMonth: string;
 }) {
   const [state, dispatch] = useReducer(reducer, {
     availableClients,
     isAdmin,
+    isSuperAdmin,
     selectedClientSlug: initialClientSlug,
     selectedMonth: initialMonth,
     pendingClientSlug: initialClientSlug,
