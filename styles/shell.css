@@ -66,6 +66,12 @@
       flex-direction: column;
       transition: transform 220ms ease, box-shadow 220ms ease;
       will-change: transform;
+      /* Content (nav links + footer) can exceed 100vh on short/mobile
+         viewports — without this, everything past the visible area (often
+         Log Out) is simply unreachable rather than scrollable. */
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
     }
 
     .sidebar-logo {

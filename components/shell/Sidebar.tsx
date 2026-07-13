@@ -154,7 +154,7 @@ export function Sidebar({ mobileOpen, onNavigate }: { mobileOpen: boolean; onNav
         {[
           { hash: "#executive-summary", label: "Executive Summary" },
           { hash: "#full-funnel-summary", label: "Full Funnel Summary" },
-          { hash: "#content-views", label: "Awarness" },
+          { hash: "#content-views", label: "Awareness" },
           { hash: "#social-followers", label: "Audience" },
           { hash: "#lead-generation", label: "Lead Generation" },
           { hash: "#website-traffic", label: "Website Traffic" },

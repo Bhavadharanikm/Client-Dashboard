@@ -16,7 +16,7 @@ export async function adminLogin(_prevState: AdminLoginState, formData: FormData
 
   // Shares the same rate limiter (keyed by IP) as the client login flow —
   // separate call site, same throttle behavior.
-  const { allowed } = checkAndRecordLoginAttempt(`admin:${ip}`);
+  const { allowed } = await checkAndRecordLoginAttempt(`admin:${ip}`);
   if (!allowed) {
     return { error: "Too many attempts. Please wait a few minutes and try again." };
   }

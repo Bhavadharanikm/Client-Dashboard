@@ -1,29 +1,33 @@
+import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
+
 /**
- * Best-effort per-key login attempt throttle. In-memory, so it resets on cold
- * start and isn't shared across serverless instances — good enough to close
- * the "brute-force a 5-digit code in seconds" gap (an attacker is now limited
- * to a handful of guesses per window instead of unlimited offline hashing).
- * For durable, multi-instance protection, swap this for a shared store
- * (e.g. Upstash Redis) without changing the call site below.
+ * Per-key login attempt throttle, backed by the login_attempts table so it
+ * holds across serverless cold starts and concurrent instances — an
+ * in-memory Map (the previous implementation) gives each instance its own
+ * private counter, which doesn't actually stop a distributed brute force.
+ * Uses the service-role client deliberately: this table has RLS enabled
+ * with zero policies (see the login_attempts migration), so the anon-key
+ * client the login actions otherwise use has no access to it at all.
  */
 const WINDOW_MS = 5 * 60 * 1000;
-const MAX_ATTEMPTS = 8;
+const MAX_ATTEMPTS = 5;
 
-const attempts = new Map<string, { count: number; resetAt: number }>();
+export async function checkAndRecordLoginAttempt(key: string): Promise<{ allowed: boolean }> {
+  const supabase = createAdminSupabaseClient();
+  const windowStart = new Date(Date.now() - WINDOW_MS).toISOString();
 
-export function checkAndRecordLoginAttempt(key: string): { allowed: boolean } {
-  const now = Date.now();
-  const entry = attempts.get(key);
+  const { count } = await supabase
+    .from("login_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("key", key)
+    .gte("created_at", windowStart);
 
-  if (!entry || now > entry.resetAt) {
-    attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return { allowed: true };
-  }
-
-  if (entry.count >= MAX_ATTEMPTS) {
+  if ((count ?? 0) >= MAX_ATTEMPTS) {
     return { allowed: false };
   }
 
-  entry.count += 1;
+  // Best-effort — a failed insert (rare) should not itself block a login
+  // attempt that would otherwise be allowed.
+  await supabase.from("login_attempts").insert({ key });
   return { allowed: true };
 }

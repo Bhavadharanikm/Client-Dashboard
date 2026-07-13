@@ -17,7 +17,7 @@ export async function submitAccessCode(
   const headerList = await headers();
   const ip = headerList.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
-  const { allowed } = checkAndRecordLoginAttempt(ip);
+  const { allowed } = await checkAndRecordLoginAttempt(ip);
   if (!allowed) {
     return { error: "Too many attempts. Please wait a few minutes and try again." };
   }

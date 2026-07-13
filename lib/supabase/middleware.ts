@@ -21,8 +21,9 @@ export function createMiddlewareSupabaseClient(request: NextRequest) {
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
+        // Force httpOnly/secure — see lib/supabase/server.ts for why.
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, { ...options, httpOnly: true, secure: true, sameSite: "lax" });
         });
       },
     },

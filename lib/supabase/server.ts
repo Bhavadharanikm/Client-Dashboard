@@ -18,8 +18,12 @@ export async function createServerSupabaseClient() {
       },
       setAll(cookiesToSet) {
         try {
+          // @supabase/ssr's default cookie options don't set httpOnly (it
+          // supports browser clients that need JS to read the cookie) — this
+          // app never uses createBrowserSupabaseClient, so force it here to
+          // keep the session token out of document.cookie/XSS reach.
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
+            cookieStore.set(name, value, { ...options, httpOnly: true, secure: true, sameSite: "lax" });
           });
         } catch {
           // Called from a Server Component render (not a Server Action/Route Handler) —
