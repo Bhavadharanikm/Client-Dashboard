@@ -17,8 +17,13 @@ export type ClientActionState = {
 const EMAIL_DOMAIN = "hiddengem.media";
 const MAX_CODE_ATTEMPTS = 10;
 
+// 8 digits (10,000,000 combinations) instead of the original 5 (100,000) —
+// that code is also every client's Auth password, so brute-forceable range
+// matters. Existing clients keep their 5-digit codes; only newly created
+// accounts get the longer ones. Login (AccessGate.tsx, normalizeAccessCode)
+// accepts either length so both keep working side by side.
 function generateCandidateCode(): string {
-  return String(Math.floor(10000 + Math.random() * 90000));
+  return String(Math.floor(10000000 + Math.random() * 90000000));
 }
 
 /**

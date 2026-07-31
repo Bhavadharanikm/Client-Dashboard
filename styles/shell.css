@@ -68,7 +68,12 @@
       will-change: transform;
       /* Content (nav links + footer) can exceed 100vh on short/mobile
          viewports — without this, everything past the visible area (often
-         Log Out) is simply unreachable rather than scrollable. */
+         Log Out) is simply unreachable rather than scrollable. Note: per the
+         CSS overflow spec, setting overflow-y here forces overflow-x off
+         "visible" too (there's no way to declare around this) — that's fine
+         because MonthPicker's popover is rendered via a React portal into
+         document.body, so it's no longer a DOM descendant of .sidebar and
+         isn't clipped by this at all. */
       overflow-y: auto;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;

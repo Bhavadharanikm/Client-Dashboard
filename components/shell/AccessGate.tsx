@@ -9,7 +9,10 @@ export function AccessGate() {
   const [state, formAction, isPending] = useActionState(submitAccessCode, initialState);
   const [code, setCode] = useState("");
 
-  const digits = code.replace(/\D/g, "").slice(0, 5);
+  // Accepts both the original 5-digit codes and newer 8-digit ones (see
+  // generateCandidateCode in app/admin/super/actions.ts) — existing clients'
+  // codes still work unchanged.
+  const digits = code.replace(/\D/g, "").slice(0, 8);
   const canSubmit = digits.length >= 4 && !isPending;
 
   return (
@@ -45,8 +48,8 @@ export function AccessGate() {
                 name="code"
                 type="text"
                 inputMode="numeric"
-                maxLength={5}
-                placeholder="_ _ _ _ _"
+                maxLength={8}
+                placeholder="_ _ _ _ _ _ _ _"
                 autoComplete="off"
                 spellCheck={false}
                 aria-label="access code"
@@ -54,7 +57,7 @@ export function AccessGate() {
                 onChange={(event) => setCode(event.target.value)}
               />
               <div className="dots" aria-hidden="true">
-                {[0, 1, 2, 3, 4].map((index) => (
+                {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
                   <div key={index} className={`dot${index < digits.length ? " on" : ""}`} />
                 ))}
               </div>
