@@ -147,10 +147,11 @@ export async function getRevenueIntelligence(clientSlug: string): Promise<RawPri
       return null;
     }
 
-    const response = await fetch(REVENUE_INTELLIGENCE_API_URL, {
+    const response = await fetchWithTimeout(REVENUE_INTELLIGENCE_API_URL, {
       headers: {
         Authorization: `Bearer ${profile.pricing_api_key}`,
         Accept: "application/json",
+        "User-Agent": "HGM-Client-Dashboard/1.0",
       },
       cache: "no-store",
     });
@@ -162,5 +163,18 @@ export async function getRevenueIntelligence(clientSlug: string): Promise<RawPri
     return buildRevenueIntelligencePricingData(payload);
   } catch {
     return null;
+  }
+}
+
+// The upstream API routinely takes several seconds — this bounds a genuinely
+// hung request to a fixed ceiling instead of waiting on whatever timeout the
+// hosting platform happens to enforce.
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = 20000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
   }
 }

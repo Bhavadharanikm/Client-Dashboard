@@ -10,6 +10,14 @@ import { PricingKpiBar } from "@/components/pricing/PricingKpiBar";
 import { PricingHeatmap } from "@/components/pricing/PricingHeatmap";
 import { PricingListingsTable } from "@/components/pricing/PricingListingsTable";
 
+// Module-level (not component state), so it survives PricingTool unmounting —
+// switching to another sidebar module and back fully remounts this component,
+// which would otherwise re-hit the slow external Revenue Intelligence API on
+// every single revisit. Only successful responses are cached; a failure isn't
+// cached so the next visit still retries rather than getting stuck on "no data".
+const revenueIntelligenceCache = new Map<string, { data: RawPricingData; fetchedAt: number }>();
+const REVENUE_INTELLIGENCE_CACHE_TTL_MS = 5 * 60 * 1000;
+
 /**
  * Container for the Pricing Tool view — ported from pricing-tool.js's render().
  * Data-source precedence (from renderPricingView() in dashboard.js):
@@ -37,8 +45,11 @@ export function PricingTool() {
   // for the static-JSON branch below).
   const isRevenueIntelligenceClient = PRICING_ENABLED_SLUGS.includes(canonicalizeClientSlug(selectedClientSlug));
 
-  const [liveData, setLiveData] = useState<RawPricingData | null>(null);
-  const [loading, setLoading] = useState(isRevenueIntelligenceClient);
+  const cachedEntry = revenueIntelligenceCache.get(selectedClientSlug);
+  const hasFreshCache = !!cachedEntry && Date.now() - cachedEntry.fetchedAt < REVENUE_INTELLIGENCE_CACHE_TTL_MS;
+
+  const [liveData, setLiveData] = useState<RawPricingData | null>(hasFreshCache ? cachedEntry!.data : null);
+  const [loading, setLoading] = useState(isRevenueIntelligenceClient && !hasFreshCache);
   const requestIdRef = useRef(0);
 
   useEffect(() => {
@@ -47,10 +58,19 @@ export function PricingTool() {
       setLoading(false);
       return;
     }
+    const cached = revenueIntelligenceCache.get(selectedClientSlug);
+    if (cached && Date.now() - cached.fetchedAt < REVENUE_INTELLIGENCE_CACHE_TTL_MS) {
+      setLiveData(cached.data);
+      setLoading(false);
+      return;
+    }
     const requestId = ++requestIdRef.current;
     setLoading(true);
     getRevenueIntelligence(selectedClientSlug)
       .then((data) => {
+        if (data) {
+          revenueIntelligenceCache.set(selectedClientSlug, { data, fetchedAt: Date.now() });
+        }
         if (requestIdRef.current === requestId) {
           setLiveData(data);
         }
