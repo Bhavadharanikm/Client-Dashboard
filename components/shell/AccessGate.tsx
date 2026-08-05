@@ -9,11 +9,13 @@ export function AccessGate() {
   const [state, formAction, isPending] = useActionState(submitAccessCode, initialState);
   const [code, setCode] = useState("");
 
-  // Accepts both the original 5-digit codes and newer 8-digit ones (see
-  // generateCandidateCode in app/admin/super/actions.ts) — existing clients'
-  // codes still work unchanged.
-  const digits = code.replace(/\D/g, "").slice(0, 8);
-  const canSubmit = digits.length >= 4 && !isPending;
+  // Accepts every code format that exists across clients: the original
+  // 5-digit-only codes, the later 8-digit-only codes, and the newest
+  // 8-digit + 3-letter codes (see generateCandidateCode in
+  // app/admin/super/actions.ts) — existing clients' codes keep working
+  // unchanged. Uppercased to match the password exactly as generated.
+  const digits = code.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11);
+  const canSubmit = digits.length >= 5 && !isPending;
 
   return (
     <div className="auth-gate" id="authGate" aria-live="polite">
@@ -47,20 +49,16 @@ export function AccessGate() {
                 id="code"
                 name="code"
                 type="text"
-                inputMode="numeric"
-                maxLength={8}
-                placeholder="_ _ _ _ _ _ _ _"
+                inputMode="text"
+                autoCapitalize="characters"
+                maxLength={11}
+                placeholder="_ _ _ _ _ _ _ _ _ _ _"
                 autoComplete="off"
                 spellCheck={false}
                 aria-label="access code"
                 value={digits}
                 onChange={(event) => setCode(event.target.value)}
               />
-              <div className="dots" aria-hidden="true">
-                {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
-                  <div key={index} className={`dot${index < digits.length ? " on" : ""}`} />
-                ))}
-              </div>
             </div>
             <div id="st" className={`status${state.error ? " e" : ""}`} role="status" aria-live="polite">
               {state.error}

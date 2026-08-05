@@ -17,13 +17,23 @@ export type ClientActionState = {
 const EMAIL_DOMAIN = "hiddengem.media";
 const MAX_CODE_ATTEMPTS = 10;
 
-// 8 digits (10,000,000 combinations) instead of the original 5 (100,000) —
-// that code is also every client's Auth password, so brute-forceable range
-// matters. Existing clients keep their 5-digit codes; only newly created
-// accounts get the longer ones. Login (AccessGate.tsx, normalizeAccessCode)
-// accepts either length so both keep working side by side.
-function generateCandidateCode(): string {
-  return String(Math.floor(10000000 + Math.random() * 90000000));
+// 8 random digits + the client name's first 3 letters, spliced in at a
+// random position among the digits (not fixed to the start or end) — e.g.
+// Flohom -> "56FLO864235", Paradise Pointe -> "87354322PAR". 11 characters
+// total, mixing digits and letters, is a large jump from the original
+// 5-digit-only codes (100,000 combinations) and even the later 8-digit-only
+// ones (10,000,000). Existing clients keep whatever code they already have;
+// only newly created accounts get this format. Login (AccessGate.tsx,
+// normalizeAccessCode) accepts any of the three formats side by side.
+function generateCandidateCode(clientName: string): string {
+  const letters = clientName
+    .replace(/[^a-zA-Z]/g, "")
+    .slice(0, 3)
+    .toUpperCase()
+    .padEnd(3, "X");
+  const digits = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)).join("");
+  const insertAt = Math.floor(Math.random() * 9); // 0..8 inclusive — before, between, or after all 8 digits
+  return digits.slice(0, insertAt) + letters + digits.slice(insertAt);
 }
 
 /**
@@ -69,14 +79,17 @@ export async function createClientAccount(
   if (usersError || !usersPage) {
     return { error: `Could not list existing accounts: ${usersError?.message || "unknown error"}` };
   }
+  // Supabase normalizes stored emails to lowercase, but the generated code
+  // (and the password it becomes) keeps its original uppercase letters —
+  // lowercase the comparison side only, not the candidate itself.
   const existingLocalParts = new Set(
-    usersPage.users.map((user) => (user.email || "").slice(0, (user.email || "").indexOf("@")))
+    usersPage.users.map((user) => (user.email || "").slice(0, (user.email || "").indexOf("@")).toLowerCase())
   );
 
   let code: string | null = null;
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt += 1) {
-    const candidate = generateCandidateCode();
-    if (!existingLocalParts.has(candidate)) {
+    const candidate = generateCandidateCode(clientName);
+    if (!existingLocalParts.has(candidate.toLowerCase())) {
       code = candidate;
       break;
     }

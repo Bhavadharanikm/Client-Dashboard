@@ -20,12 +20,16 @@ export const PRICING_ENABLED_SLUGS = [
   "stay-on-30a",
 ];
 
-// Accepts both the original 5-digit codes (existing clients) and the newer
-// 8-digit codes (see generateCandidateCode in app/admin/super/actions.ts) —
-// truncating to 5 here would silently cut off part of a longer code before
-// it ever reaches Supabase.
+// Accepts all three code formats that exist across clients: the original
+// 5-digit-only codes, the later 8-digit-only codes, and the newest 8-digit +
+// 3-letter codes (see generateCandidateCode in app/admin/super/actions.ts).
+// Uppercases so a client typing lowercase letters still matches the
+// uppercase password that was actually generated — digits are unaffected.
 export function normalizeAccessCode(value: unknown): string {
-  return String(value ?? "").replace(/\D/g, "").slice(0, 8);
+  return String(value ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 11);
 }
 
 export function canonicalizeClientSlug(slug: unknown): string {

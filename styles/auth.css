@@ -112,13 +112,15 @@
 
     .auth-gate #code {
       flex:1; height:48px; border:none; outline:none; background:transparent;
-      font-size:22px; font-weight:600; color:#0f172a; letter-spacing:0.22em;
+      /* Sized for up to 11 characters (8 digits + 3 letters) — the dots
+         indicator that used to sit alongside this was dropped since it
+         doesn't show what was actually typed and was squeezing this input
+         into scrolling/clipping the entered code out of view. */
+      font-size:17px; font-weight:600; color:#0f172a; letter-spacing:0.08em;
       padding:0 14px; caret-color:#38bdf8; width:0;
     }
 
-    .auth-gate #code::placeholder { color:#cbd5e1; font-size:16px; letter-spacing:0.08em; font-weight:400; }
-
-    .auth-gate .dots { display:flex; gap:5px; padding:0 12px; align-items:center; }
+    .auth-gate #code::placeholder { color:#cbd5e1; font-size:14px; letter-spacing:0.06em; font-weight:400; }
 
     /* Plain text/email/password field used by the admin login form — the
        digit-code field above (#code) keeps its own bespoke styling. */
@@ -131,10 +133,6 @@
     .auth-gate .field-input::placeholder { color:#cbd5e1; font-weight:400; }
 
     .auth-gate .field-group { margin-bottom:1rem; }
-
-    .auth-gate .dot { width:7px; height:7px; border-radius:50%; background:#e2e8f0; transition:background 0.15s, transform 0.15s; }
-
-    .auth-gate .dot.on { background:linear-gradient(135deg,#38bdf8,#a78bfa); transform:scale(1.2); }
 
     .auth-gate .hint { font-size:11.5px; color:#94a3b8; margin-bottom:1.5rem; animation:rise 0.5s 0.26s both; }
 
