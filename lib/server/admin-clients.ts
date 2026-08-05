@@ -47,7 +47,11 @@ export async function getClientAccountsByClientSlug(): Promise<Record<string, Cl
       if (!email.endsWith("@hiddengem.media") || isAdminEmail(email)) {
         continue;
       }
-      accountByUserId.set(user.id, { code: email.slice(0, email.indexOf("@")), userId: user.id });
+      // Supabase always stores email lowercase, but access codes are
+      // generated/communicated to clients with uppercase letters (see
+      // generateCandidateCode in app/admin/super/actions.ts) — uppercase here
+      // purely for display so this matches what the client was actually given.
+      accountByUserId.set(user.id, { code: email.slice(0, email.indexOf("@")).toUpperCase(), userId: user.id });
     }
     if (!accountByUserId.size) {
       return {};
