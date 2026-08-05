@@ -1,12 +1,28 @@
+"use client";
+
 import type { RoiViewModel } from "@/lib/roi-metrics";
+import { useDashboardState } from "@/hooks/useDashboardState";
 
 export function ExecutiveSummary({ model }: { model: RoiViewModel }) {
   const { executiveSummary: s, clientName, dateRangeLabel } = model;
+  const { isAdmin, availableClients, selectedClientSlug } = useDashboardState();
+  // Admin-only, matching where else access codes are shown (Sidebar's client
+  // dropdown, Super Admin directory) — clients don't need to see their own
+  // code back at themselves. Small/bracketed so it reads as a quick
+  // reference, easy to copy, not a headline element.
+  const clientCode = isAdmin ? availableClients.find((c) => c.slug === selectedClientSlug)?.code : undefined;
 
   return (
     <section id="executive-summary" className="section">
       <header className="pp-header">
-        <h1 id="clientNameHeading">{clientName}</h1>
+        <h1 id="clientNameHeading">
+          {clientName}
+          {clientCode && (
+            <span style={{ fontSize: "0.4em", fontWeight: 500, opacity: 0.5, marginLeft: 10, verticalAlign: "middle" }}>
+              ({clientCode})
+            </span>
+          )}
+        </h1>
         <div className="pp-eyebrow" id="dateRangeLabel">
           {dateRangeLabel}
         </div>
