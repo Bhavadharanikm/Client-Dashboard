@@ -72,7 +72,7 @@ export function Sidebar({ mobileOpen, onNavigate }: { mobileOpen: boolean; onNav
               >
                 {state.availableClients.map((client) => (
                   <option key={client.slug} value={client.slug}>
-                    {client.code ? `${client.name} (${client.code})` : client.name}
+                    {client.name}
                   </option>
                 ))}
               </select>
