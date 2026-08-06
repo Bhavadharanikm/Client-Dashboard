@@ -81,7 +81,12 @@ export async function loadDashboardBootstrap({
     : clientSlug ?? availableClients[0]?.slug ?? "";
 
   const bounds = getClientMonthBounds(mergedWorkbook, initialClientSlug);
-  const initialMonth = isAdmin ? requestedMonth || defaultMonth : bounds.max || defaultMonth;
+  // Admin used to fall back to the hardcoded config default (defaults.to,
+  // e.g. "2026-03") whenever no ?month= was requested, which goes stale the
+  // moment new months are synced in. Falling back to bounds.max — the
+  // selected client's own latest available month — matches what the client
+  // side already does, so admin opens on the most recent real data too.
+  const initialMonth = isAdmin ? requestedMonth || bounds.max || defaultMonth : bounds.max || defaultMonth;
 
   return {
     workbook: mergedWorkbook,
