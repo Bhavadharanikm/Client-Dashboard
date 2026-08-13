@@ -636,15 +636,29 @@ export function buildMetaViewModel(
   const legendMonths = meta.months.map((month, index) => ({ label: month.label, color: monthColor(index) }));
 
   // --- Summary strip (renderMetaSummaryStrip) ---
+  const allRoiMonths = buildRoiMetrics(getAllRoiMonthKeys(roiRows), roiRows);
   const currentMonth = meta.months[meta.months.length - 1] || null;
   const currentRows = currentMonth ? meta.rows.filter((row) => row.key === currentMonth.key) : [];
   const currentMonthLabel = currentMonth ? currentMonth.label : "Selected month";
   const currentBookings = currentMonth ? numeric(currentMonth.totalBookings) : 0;
   const currentCostPerBooking = currentBookings ? numeric(currentMonth.totalSpend) / currentBookings : 0;
-  const currentFollowers = sumMetric(currentRows, "leadsFollowers");
   const currentViews = sumMetric(currentRows, "impressions");
-  const currentLeads = sumMetric(currentRows, "igBioLeads");
   const currentPctAvgBookingValue = averageMetric(currentRows, "pctAvgBookingValue");
+
+  // "Leads" and "Followers" on this strip intentionally come from Performance
+  // data (dashboard_performance), not the Meta campaign rows above — per
+  // request, Leads = that month's new_leads (organic/GHL lead count, not the
+  // Meta campaign's own leads_followers figure) and Followers = that month's
+  // net-new Instagram followers specifically (current ig_followers minus the
+  // prior month's), not total-followers-across-platforms or a Meta count.
+  // Only the current month's own figures are used — no 3-month comparison.
+  const currentRoiMonthIndex = allRoiMonths.findIndex((month) => month.key === (currentMonth ? currentMonth.key : selectedMonth));
+  const currentRoiMonth = currentRoiMonthIndex >= 0 ? allRoiMonths[currentRoiMonthIndex] : null;
+  const previousRoiMonth = currentRoiMonthIndex > 0 ? allRoiMonths[currentRoiMonthIndex - 1] : null;
+  const currentNewLeads = currentRoiMonth ? numeric(currentRoiMonth.newLeads) : 0;
+  const currentInstagramNetNew = currentRoiMonth
+    ? numeric(currentRoiMonth.igFollowers) - (previousRoiMonth ? numeric(previousRoiMonth.igFollowers) : 0)
+    : 0;
 
   const summaryStrip = {
     adSpend: formatCurrency(currentMonth ? currentMonth.totalSpend : 0, 0),
@@ -655,16 +669,15 @@ export function buildMetaViewModel(
     roasNote: currentMonthLabel,
     costPerBooking: currentCostPerBooking ? formatCurrency(currentCostPerBooking, 0) : "—",
     costPerBookingNote: currentPctAvgBookingValue ? `${formatPercent(currentPctAvgBookingValue, 0)} avg BV` : currentMonthLabel,
-    leads: formatNumber(currentLeads),
+    leads: formatNumber(currentNewLeads),
     leadsNote: currentMonthLabel,
-    followers: formatNumber(currentFollowers),
+    followers: formatNumber(currentInstagramNetNew),
     followersNote: currentMonthLabel,
     views: formatNumber(currentViews),
     viewsNote: currentMonthLabel,
   };
 
   // --- Portfolio charts (renderMetaCharts's #meta-rev-spend / booking-value-trend / bookings) ---
-  const allRoiMonths = buildRoiMetrics(getAllRoiMonthKeys(roiRows), roiRows);
   const directRevenueByMonthKey: Record<string, number> = {};
   buildRoiMetrics(monthKeys, roiRows).forEach((month) => {
     directRevenueByMonthKey[month.key] = numeric(month.directRevenue);
