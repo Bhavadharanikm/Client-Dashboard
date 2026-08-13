@@ -611,6 +611,41 @@ export function buildMetaViewModel(
   );
   const monthKeys = Array.from(new Set([...roiMonthKeys, ...metaMonthKeys])).sort().slice(-3);
   const filteredRows = filterMetaRows(monthKeys, rawMetaRows);
+
+  // Starting July 2026, Discovery rows' "Leads/Followers" and "IG Bio Leads"
+  // columns come from Performance data instead of the Meta campaign's own
+  // fields (see buildMetaViewModel's summary-strip comment above for why —
+  // same reasoning, just applied per-row here instead of only the top strip):
+  //   - "Leads/Followers" -> that month's net-new Instagram followers
+  //     (current ig_followers minus the prior month's)
+  //   - "IG Bio Leads" -> that month's new_leads
+  // Deliberately scoped to July 2026 onward only; nothing before that cutover
+  // is touched, so historical rows keep showing whatever they already showed.
+  // Retargeting rows are left alone — both fields are Discovery-only concepts
+  // there too.
+  const LEADS_FOLLOWERS_CUTOVER_MONTH_KEY = "2026-07";
+  const newLeadsByMonthKey: Record<string, number> = {};
+  const igFollowersByMonthKeySorted: { key: string; igFollowers: number }[] = [];
+  roiRows.forEach((row) => {
+    const key = toMonthKey(row.year, row.month);
+    newLeadsByMonthKey[key] = numeric(row.new_leads);
+    igFollowersByMonthKeySorted.push({ key, igFollowers: numeric(row.ig_followers) });
+  });
+  igFollowersByMonthKeySorted.sort((a, b) => a.key.localeCompare(b.key));
+  filteredRows.forEach((row) => {
+    if (row.key >= LEADS_FOLLOWERS_CUTOVER_MONTH_KEY && row.campaignType.toLowerCase().indexOf("retarget") === -1) {
+      const newLeads = newLeadsByMonthKey[row.key];
+      if (newLeads !== undefined) row.igBioLeads = newLeads;
+
+      const rowIndex = igFollowersByMonthKeySorted.findIndex((entry) => entry.key === row.key);
+      if (rowIndex >= 0) {
+        const current = igFollowersByMonthKeySorted[rowIndex].igFollowers;
+        const previous = rowIndex > 0 ? igFollowersByMonthKeySorted[rowIndex - 1].igFollowers : 0;
+        row.leadsFollowers = current - previous;
+      }
+    }
+  });
+
   const meta = normalizeMetaSpendBoundaryMonths(buildMetaModel(filteredRows), canonicalSlug);
 
   // hasRenderableMetaMonthData() — checks if the *selected* month itself has any
