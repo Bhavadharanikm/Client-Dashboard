@@ -576,11 +576,20 @@ function buildEmptyMetaViewModel(clientName: string, selectedMonth: string, isCo
   };
 }
 
+// Meta Ads data for this month onward is admin-only for now — client
+// sessions see the "Report Coming Soon" placeholder regardless of whether
+// the underlying dashboard_meta_ads rows actually exist yet, while admins
+// continue to see the real report. Only affects the Meta Ads view; ROI /
+// Performance data is unaffected.
+const META_ADS_CLIENT_HOLD_FROM_MONTH_KEY = "2026-07";
+
 /**
  * Builds the entire Meta Ads view model in one shot, mirroring renderMetaView() +
  * renderMetaCharts() from the original. selectedMonth is the COMMITTED month from
  * useDashboardState (not a pending value). expandedCampaigns comes from
  * useDashboardState().metaExpandedCampaigns (already keyed by metaCampaignToggleKey).
+ * isAdmin gates the client-side hold on Meta Ads data — see
+ * META_ADS_CLIENT_HOLD_FROM_MONTH_KEY above.
  */
 export function buildMetaViewModel(
   workbook: PerformanceWorkbook,
@@ -588,8 +597,13 @@ export function buildMetaViewModel(
   clientName: string,
   clientSlug: string,
   selectedMonth: string,
-  expandedCampaigns: Record<string, boolean>
+  expandedCampaigns: Record<string, boolean>,
+  isAdmin: boolean
 ): MetaViewModel {
+  if (!isAdmin && selectedMonth >= META_ADS_CLIENT_HOLD_FROM_MONTH_KEY) {
+    return buildEmptyMetaViewModel(clientName, selectedMonth, true);
+  }
+
   const canonicalSlug = canonicalizeClientSlug(clientSlug);
   const roiRows = getPerformanceRoiRows(workbook, canonicalSlug);
   const rawMetaRows = getMetaRows(workbook, canonicalSlug);

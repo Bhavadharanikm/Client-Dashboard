@@ -12,14 +12,14 @@ import { MetaInsights } from "./MetaInsights";
 
 /** Ported from renderMetaView() — top-level Meta Ads view container. */
 export function MetaView() {
-  const { availableClients, selectedClientSlug, selectedMonth, metaExpandedCampaigns } = useDashboardState();
+  const { isAdmin, availableClients, selectedClientSlug, selectedMonth, metaExpandedCampaigns } = useDashboardState();
   const { workbook, metaAnalysis } = useDashboardData();
 
   const client = availableClients.find((c) => c.slug === selectedClientSlug) || null;
 
   const model = useMemo(
-    () => buildMetaViewModel(workbook, metaAnalysis, client?.name || "", selectedClientSlug, selectedMonth, metaExpandedCampaigns),
-    [workbook, metaAnalysis, client?.name, selectedClientSlug, selectedMonth, metaExpandedCampaigns]
+    () => buildMetaViewModel(workbook, metaAnalysis, client?.name || "", selectedClientSlug, selectedMonth, metaExpandedCampaigns, isAdmin),
+    [workbook, metaAnalysis, client?.name, selectedClientSlug, selectedMonth, metaExpandedCampaigns, isAdmin]
   );
 
   if (!model.hasData) {
