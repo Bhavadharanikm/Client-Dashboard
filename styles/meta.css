@@ -52,6 +52,20 @@
       line-height: 1.1;
     }
 
+    .meta-disclaimer {
+      font-size: 12.5px;
+      font-weight: 400;
+      color: #64748b;
+      max-width: 560px;
+      margin: 14px auto 0;
+      line-height: 1.5;
+      text-align: left;
+      background: rgba(41, 151, 255, 0.07);
+      border: 1px solid rgba(41, 151, 255, 0.18);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
     .meta-legend {
       display: flex;
       align-items: center;

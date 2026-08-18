@@ -32,6 +32,10 @@ export function MetaView() {
               <div className="meta-legend-item">{formatMonthKey(selectedMonth)}</div>
             </div>
             <div className="meta-subtitle">Meta Ads Report</div>
+            <div className="meta-disclaimer">
+              Attributed revenue is an estimate — overlapping campaign touchpoints and post-booking changes mean actual figures may differ
+              slightly.
+            </div>
           </div>
         </div>
         <div className="meta-body">
@@ -75,6 +79,10 @@ export function MetaView() {
             ))}
           </div>
           <div className="meta-subtitle">Meta Ads Report</div>
+          <div className="meta-disclaimer">
+            Attributed revenue is an estimate — overlapping campaign touchpoints and post-booking changes mean actual figures may differ
+            slightly.
+          </div>
         </div>
       </div>
       <div className="meta-body">
