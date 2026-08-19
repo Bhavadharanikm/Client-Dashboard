@@ -33,7 +33,7 @@ export function MetaView() {
             </div>
             <div className="meta-subtitle">Meta Ads Report</div>
             <div className="meta-disclaimer">
-              Attributed revenue is an estimate — overlapping campaign touchpoints and post-booking changes mean actual figures may differ
+              Attributed revenue is an estimate, overlapping campaign touchpoints and post-booking changes mean actual figures may differ
               slightly.
             </div>
           </div>
@@ -80,7 +80,7 @@ export function MetaView() {
           </div>
           <div className="meta-subtitle">Meta Ads Report</div>
           <div className="meta-disclaimer">
-            Attributed revenue is an estimate — overlapping campaign touchpoints and post-booking changes mean actual figures may differ
+            Attributed revenue is an estimate, overlapping campaign touchpoints and post-booking changes mean actual figures may differ
             slightly.
           </div>
         </div>
