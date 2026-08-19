@@ -576,11 +576,12 @@ function buildEmptyMetaViewModel(clientName: string, selectedMonth: string, isCo
   };
 }
 
-// Meta Ads data for this month onward is admin-only for now — client
-// sessions see the "Report Coming Soon" placeholder regardless of whether
-// the underlying dashboard_meta_ads rows actually exist yet, while admins
-// continue to see the real report. Only affects the Meta Ads view; ROI /
-// Performance data is unaffected.
+// Dwell Luxury Rentals' Meta Ads data (July 2026 onward) was pulled entirely —
+// the underlying campaign numbers were invalid — and client sessions should
+// keep seeing "Report Coming Soon" rather than an empty/broken report even if
+// rows for them ever reappear. Admins still see whatever real data exists.
+// Only affects the Meta Ads view; ROI / Performance data is unaffected.
+const META_ADS_EXCLUDED_CLIENT_SLUGS = ["dwell-luxury-rentals"];
 const META_ADS_CLIENT_HOLD_FROM_MONTH_KEY = "2026-07";
 
 /**
@@ -588,8 +589,8 @@ const META_ADS_CLIENT_HOLD_FROM_MONTH_KEY = "2026-07";
  * renderMetaCharts() from the original. selectedMonth is the COMMITTED month from
  * useDashboardState (not a pending value). expandedCampaigns comes from
  * useDashboardState().metaExpandedCampaigns (already keyed by metaCampaignToggleKey).
- * isAdmin gates the client-side hold on Meta Ads data — see
- * META_ADS_CLIENT_HOLD_FROM_MONTH_KEY above.
+ * isAdmin bypasses the Dwell-only client hold — see
+ * META_ADS_EXCLUDED_CLIENT_SLUGS above.
  */
 export function buildMetaViewModel(
   workbook: PerformanceWorkbook,
@@ -600,11 +601,12 @@ export function buildMetaViewModel(
   expandedCampaigns: Record<string, boolean>,
   isAdmin: boolean
 ): MetaViewModel {
-  if (!isAdmin && selectedMonth >= META_ADS_CLIENT_HOLD_FROM_MONTH_KEY) {
+  const canonicalSlug = canonicalizeClientSlug(clientSlug);
+
+  if (!isAdmin && META_ADS_EXCLUDED_CLIENT_SLUGS.includes(canonicalSlug) && selectedMonth >= META_ADS_CLIENT_HOLD_FROM_MONTH_KEY) {
     return buildEmptyMetaViewModel(clientName, selectedMonth, true);
   }
 
-  const canonicalSlug = canonicalizeClientSlug(clientSlug);
   const roiRows = getPerformanceRoiRows(workbook, canonicalSlug);
   const rawMetaRows = getMetaRows(workbook, canonicalSlug);
 
