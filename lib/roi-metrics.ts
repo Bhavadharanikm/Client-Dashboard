@@ -228,6 +228,7 @@ export type FunnelStage = {
 
 export type RoiViewModel = {
   hasData: boolean;
+  isComingSoon: boolean;
   clientName: string;
   dateRangeLabel: string;
   takeawayPeriodLabel: string;
@@ -396,11 +397,12 @@ export type RoiViewModel = {
   };
 };
 
-function buildEmptyViewModel(clientName: string, selectedMonth: string): RoiViewModel {
+function buildEmptyViewModel(clientName: string, selectedMonth: string, isComingSoon = false): RoiViewModel {
   const emptyTrend = { tone: "neutral" as const, text: "0%" };
   const emptyFunnelStage = { fillRatio: 0, value: "0" };
   return {
     hasData: false,
+    isComingSoon,
     clientName,
     dateRangeLabel: `Social · ${formatMonthKey(selectedMonth)}`,
     takeawayPeriodLabel: "",
@@ -546,18 +548,31 @@ function buildEmptyViewModel(clientName: string, selectedMonth: string): RoiView
   };
 }
 
+// August 2026's Performance data is admin-only for now, same hold as Meta
+// Ads' — client sessions see the "Report Coming Soon" placeholder regardless
+// of whether dashboard_performance rows exist yet, while admins see the real
+// dashboard. Bump this forward (or remove the check below) once August is
+// ready to show clients.
+const ROI_CLIENT_HOLD_FROM_MONTH_KEY = "2026-08";
+
 /**
  * Builds the entire ROI view model in one shot, mirroring renderRoiDashboard() +
  * buildRoiCharts() from the original. selectedMonth is the COMMITTED month from
- * useDashboardState (not a pending value).
+ * useDashboardState (not a pending value). isAdmin bypasses the current-month
+ * client hold — see ROI_CLIENT_HOLD_FROM_MONTH_KEY above.
  */
 export function buildRoiViewModel(
   workbook: PerformanceWorkbook,
   roiAnalysis: RoiAnalysis,
   clientName: string,
   clientSlug: string,
-  selectedMonth: string
+  selectedMonth: string,
+  isAdmin: boolean
 ): RoiViewModel {
+  if (!isAdmin && selectedMonth >= ROI_CLIENT_HOLD_FROM_MONTH_KEY) {
+    return buildEmptyViewModel(clientName, selectedMonth, true);
+  }
+
   const canonicalSlug = canonicalizeClientSlug(clientSlug);
   const roiRows = getPerformanceRoiRows(workbook, canonicalSlug);
   const metaRows = getMetaRows(workbook, canonicalSlug);
@@ -674,6 +689,7 @@ export function buildRoiViewModel(
 
   return {
     hasData: true,
+    isComingSoon: false,
     clientName,
     dateRangeLabel: `Social · ${firstMonth.label} – ${latestMonth.label}`,
     takeawayPeriodLabel: `(${firstMonth.label} – ${latestMonth.label})`,
