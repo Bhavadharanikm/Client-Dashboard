@@ -240,7 +240,15 @@ export function normalizeMetaSpendBoundaryMonths(meta: MetaModel, clientSlug: st
 // ---------------------------------------------------------------------------
 
 export function primaryRoas(row: MetaRow): number {
-  return numeric(row.roas) || numeric(row.blendedRoas);
+  // Was `numeric(row.roas) || numeric(row.blendedRoas)` — falling back to the
+  // client-level blended ROAS whenever a row's own ROAS is 0 (i.e. any
+  // zero-revenue row). That's wrong everywhere this feeds a per-row/per-month
+  // display alongside that row's own spend and revenue (table cells, bar
+  // charts, performance labels, best/worst-row sorting, average-ROAS math) —
+  // a $0-revenue Retargeting row would show the client's unrelated blended
+  // figure instead of 0.00x. A row's own ROAS is always 0 for $0 revenue by
+  // construction, never legitimately missing, so no fallback is needed.
+  return numeric(row.roas);
 }
 
 export function performanceStatus(row: MetaRow): { label: string; className: string } {
