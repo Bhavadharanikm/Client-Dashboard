@@ -121,7 +121,7 @@ export function MetaPortfolioSummary({ model }: { model: MetaViewModel }) {
       <section className="meta-summary-strip">
         <MetaSummaryStat label="Ad Spend" value={summaryStrip.adSpend} note={summaryStrip.adSpendNote} />
         <MetaSummaryStat label="Ad Rev" value={summaryStrip.adRev} note={summaryStrip.adRevNote} />
-        <MetaSummaryStat label="ROAS" value={summaryStrip.roas} note={summaryStrip.roasNote} />
+        <MetaSummaryStat label="Blended ROAS" value={summaryStrip.roas} note={summaryStrip.roasNote} />
         <MetaSummaryStat label="Cost Per Booking (%)" value={summaryStrip.costPerBooking} note={summaryStrip.costPerBookingNote} />
         <MetaSummaryStat label="Leads" value={summaryStrip.leads} note={summaryStrip.leadsNote} />
         <MetaSummaryStat label="Followers" value={summaryStrip.followers} note={summaryStrip.followersNote} />
