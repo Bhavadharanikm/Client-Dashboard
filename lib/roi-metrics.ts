@@ -553,7 +553,7 @@ function buildEmptyViewModel(clientName: string, selectedMonth: string, isComing
 // of whether dashboard_performance rows exist yet, while admins see the real
 // dashboard. Bump this forward (or remove the check below) once August is
 // ready to show clients.
-const ROI_CLIENT_HOLD_FROM_MONTH_KEY = "2026-08";
+const ROI_CLIENT_HOLD_FROM_MONTH_KEY = "2026-09";
 
 /**
  * Builds the entire ROI view model in one shot, mirroring renderRoiDashboard() +

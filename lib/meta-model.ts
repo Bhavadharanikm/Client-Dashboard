@@ -589,7 +589,7 @@ const META_ADS_DWELL_HOLD_FROM_MONTH_KEY = "2026-07";
 // rows exist yet, while admins see the real report. Bump this forward (or
 // remove the check below) once August is ready to show clients, the same way
 // July's hold was lifted. Only affects the Meta Ads view.
-const META_ADS_CLIENT_HOLD_FROM_MONTH_KEY = "2026-08";
+const META_ADS_CLIENT_HOLD_FROM_MONTH_KEY = "2026-09";
 
 /**
  * Builds the entire Meta Ads view model in one shot, mirroring renderMetaView() +

@@ -19,7 +19,7 @@ export function Sidebar({ mobileOpen, onNavigate }: { mobileOpen: boolean; onNav
   // month picker entirely so a client can't select it in the first place.
   // buildRoiViewModel's own hold is the real gate; this just keeps the picker
   // from offering a month that would show "Report Coming Soon" anyway.
-  const ROI_CLIENT_HOLD_FROM_MONTH_KEY = "2026-08";
+  const ROI_CLIENT_HOLD_FROM_MONTH_KEY = "2026-09";
   const availableMonths = useMemo(() => {
     const months = getAllMonthKeys(workbook, state.pendingClientSlug);
     return state.isAdmin ? months : months.filter((month) => month < ROI_CLIENT_HOLD_FROM_MONTH_KEY);
