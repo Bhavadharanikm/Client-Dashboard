@@ -1,0 +1,23 @@
+# Belt-and-suspenders alongside .gitignore for local `vercel --prod` CLI
+# deploys, which upload the working directory as-is (not what's committed).
+# Never let secrets or local-only files ship.
+
+# env files — real secrets live only in the Vercel dashboard env vars
+.env
+.env.local
+.env*.local
+!.env.example
+
+# dependencies / build output (rebuilt remotely by Vercel)
+node_modules
+.next
+out
+build
+coverage
+
+# local tooling / dev artifacts
+.git
+.DS_Store
+*.pem
+.playwright-mcp
+.claude
