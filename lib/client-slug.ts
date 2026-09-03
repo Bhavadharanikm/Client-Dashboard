@@ -4,7 +4,6 @@ import { DASHBOARD_CONFIG } from "./config";
 
 export const CLIENT_ALIASES: Record<string, string[]> = {
   "american-river": ["american-river", "american-river-resort"],
-  "apple-mountain": ["apple-mountain", "apple-mountain-resort"],
   "casa-oso": ["casa-oso", "casa-oso-ad-account"],
   "bison-ridge-retreat": ["bison-ridge", "bison-ridge-retreat"],
   "three-suns-cabins": ["three-suns", "three-suns-cabins"],
@@ -12,13 +11,7 @@ export const CLIENT_ALIASES: Record<string, string[]> = {
 
 export const EXCLUDED_CLIENT_SLUGS = ["new", "north-star-nature-suites"];
 
-export const PRICING_ENABLED_SLUGS = [
-  "flohom",
-  "paradise-pointe",
-  "awayframes",
-  "reflections-resorts",
-  "stay-on-30a",
-];
+export const PRICING_ENABLED_SLUGS = ["flohom", "paradise-pointe", "awayframes", "stay-on-30a"];
 
 // Accepts all three code formats that exist across clients: the original
 // 5-digit-only codes, the later 8-digit-only codes, and the newest 8-digit +
