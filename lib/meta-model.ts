@@ -582,15 +582,23 @@ function buildEmptyMetaViewModel(clientName: string, selectedMonth: string, isCo
 // rows for them ever reappear. Admins still see whatever real data exists.
 // Only affects the Meta Ads view; ROI / Performance data is unaffected.
 const META_ADS_EXCLUDED_CLIENT_SLUGS = ["dwell-luxury-rentals"];
-const META_ADS_CLIENT_HOLD_FROM_MONTH_KEY = "2026-07";
+const META_ADS_DWELL_HOLD_FROM_MONTH_KEY = "2026-07";
+
+// August 2026's Meta Ads data is admin-only for now — client sessions see the
+// "Report Coming Soon" placeholder regardless of whether dashboard_meta_ads
+// rows exist yet, while admins see the real report. Bump this forward (or
+// remove the check below) once August is ready to show clients, the same way
+// July's hold was lifted. Only affects the Meta Ads view.
+const META_ADS_CLIENT_HOLD_FROM_MONTH_KEY = "2026-08";
 
 /**
  * Builds the entire Meta Ads view model in one shot, mirroring renderMetaView() +
  * renderMetaCharts() from the original. selectedMonth is the COMMITTED month from
  * useDashboardState (not a pending value). expandedCampaigns comes from
  * useDashboardState().metaExpandedCampaigns (already keyed by metaCampaignToggleKey).
- * isAdmin bypasses the Dwell-only client hold — see
- * META_ADS_EXCLUDED_CLIENT_SLUGS above.
+ * isAdmin bypasses both the Dwell-only client hold and the current-month client
+ * hold — see META_ADS_EXCLUDED_CLIENT_SLUGS / META_ADS_CLIENT_HOLD_FROM_MONTH_KEY
+ * above.
  */
 export function buildMetaViewModel(
   workbook: PerformanceWorkbook,
@@ -603,8 +611,13 @@ export function buildMetaViewModel(
 ): MetaViewModel {
   const canonicalSlug = canonicalizeClientSlug(clientSlug);
 
-  if (!isAdmin && META_ADS_EXCLUDED_CLIENT_SLUGS.includes(canonicalSlug) && selectedMonth >= META_ADS_CLIENT_HOLD_FROM_MONTH_KEY) {
-    return buildEmptyMetaViewModel(clientName, selectedMonth, true);
+  if (!isAdmin) {
+    const isDwellHeld =
+      META_ADS_EXCLUDED_CLIENT_SLUGS.includes(canonicalSlug) && selectedMonth >= META_ADS_DWELL_HOLD_FROM_MONTH_KEY;
+    const isMonthHeld = selectedMonth >= META_ADS_CLIENT_HOLD_FROM_MONTH_KEY;
+    if (isDwellHeld || isMonthHeld) {
+      return buildEmptyMetaViewModel(clientName, selectedMonth, true);
+    }
   }
 
   const roiRows = getPerformanceRoiRows(workbook, canonicalSlug);
