@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import type { RoiViewModel } from "@/lib/roi-metrics";
 import { useDashboardState } from "@/hooks/useDashboardState";
 
-// Header disclaimer's tooltip — the general explanation of why booking date
+// Header disclaimer's tooltip: the general explanation of why booking date
 // is used at all.
 const BOOKING_DATE_TOOLTIP = (
   <>
@@ -16,12 +16,12 @@ const BOOKING_DATE_TOOLTIP = (
 );
 
 // Total Revenue and Direct Revenue each need their own explanation, not the
-// same paragraph twice — the interesting part differs per metric (all
+// same paragraph twice, since the interesting part differs per metric (all
 // channels vs. owned channel only).
 const TOTAL_REVENUE_TOOLTIP = (
   <>
-    Total Revenue includes bookings from every channel — direct and third-party (OTAs) — counted by the date the guest booked, not the
-    date of their stay. That captures the full demand generated in this window, regardless of which channel it came through.
+    Total Revenue includes bookings from every channel, direct and third-party (OTAs), counted by the date the guest booked, not the date
+    of their stay. That captures the full demand generated in this window, regardless of which channel it came through.
   </>
 );
 
@@ -35,8 +35,8 @@ const DIRECT_REVENUE_TOOLTIP = (
 
 /**
  * Small "?" icon + hover/focus tooltip for sitting right next to a stat-card
- * label. The tooltip itself renders through a portal into document.body —
- * the summary strip card has `overflow: hidden` for its rounded corners,
+ * label. The tooltip itself renders through a portal into document.body,
+ * since the summary strip card has `overflow: hidden` for its rounded corners,
  * which would otherwise clip a plain absolutely-positioned tooltip popping
  * out of these small cells.
  */
@@ -86,7 +86,7 @@ export function ExecutiveSummary({ model }: { model: RoiViewModel }) {
   const { executiveSummary: s, clientName, dateRangeLabel } = model;
   const { isAdmin, availableClients, selectedClientSlug } = useDashboardState();
   // Admin-only, matching where else access codes are shown (Sidebar's client
-  // dropdown, Super Admin directory) — clients don't need to see their own
+  // dropdown, Super Admin directory): clients don't need to see their own
   // code back at themselves. Small/bracketed so it reads as a quick
   // reference, easy to copy, not a headline element.
   const clientCode = isAdmin ? availableClients.find((c) => c.slug === selectedClientSlug)?.code : undefined;
