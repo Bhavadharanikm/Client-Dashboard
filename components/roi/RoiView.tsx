@@ -35,7 +35,7 @@ export function RoiView() {
               Report Coming Soon
             </div>
             <div style={{ fontSize: "0.9rem", lineHeight: 1.7 }}>
-              Currently gathering your {model.dateRangeLabel.replace("Social · ", "")} performance data. Your report will be available
+              Currently gathering your {model.dateRangeLabel} performance data. Your report will be available
               shortly.
             </div>
           </div>
