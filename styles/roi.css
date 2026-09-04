@@ -759,6 +759,87 @@
       letter-spacing: -0.01em;
     }
 
+    .pp-disclaimer {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: #64748b;
+      max-width: 640px;
+      margin: 14px auto 0;
+      line-height: 1.5;
+      text-align: left;
+      background: rgba(41, 151, 255, 0.07);
+      border: 1px solid rgba(41, 151, 255, 0.18);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    .pp-disclaimer-text {
+      flex: 1;
+    }
+
+    .pp-disclaimer-info {
+      position: relative;
+      flex-shrink: 0;
+      display: inline-flex;
+      cursor: help;
+      margin-top: 1px;
+    }
+
+    .pp-disclaimer-info-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(41, 151, 255, 0.18);
+      color: #2997ff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .pp-disclaimer-tooltip {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      width: 280px;
+      background: #1f2937;
+      color: #f8fafc;
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 10px 12px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-4px);
+      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+      z-index: 20;
+      text-align: left;
+    }
+
+    .pp-disclaimer-info:hover .pp-disclaimer-tooltip,
+    .pp-disclaimer-info:focus .pp-disclaimer-tooltip,
+    .pp-disclaimer-info:focus-within .pp-disclaimer-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 640px) {
+      .pp-disclaimer-tooltip {
+        right: auto;
+        left: 0;
+        width: 240px;
+      }
+    }
+
     .export-btn-wrap {
       position: relative;
       display: flex;
