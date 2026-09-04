@@ -840,6 +840,56 @@
       }
     }
 
+    /* Small "?" tooltip attached to individual stat-card labels (Total
+       Revenue / Direct Revenue). Rendered through a portal into
+       document.body, positioned inline via style={top,left} in JS — the
+       summary strip's overflow:hidden would otherwise clip it. */
+    .pp-stat-info {
+      position: relative;
+      display: inline-flex;
+      cursor: help;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .pp-stat-info-icon {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: rgba(41, 151, 255, 0.18);
+      color: #2997ff;
+      font-size: 9px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .pp-stat-tooltip {
+      position: absolute;
+      transform: translateX(-50%);
+      width: 260px;
+      background: #1f2937;
+      color: #f8fafc;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: normal;
+      text-transform: none;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      z-index: 50;
+    }
+
+    @media (max-width: 640px) {
+      .pp-stat-tooltip {
+        width: 220px;
+      }
+    }
+
     .export-btn-wrap {
       position: relative;
       display: flex;

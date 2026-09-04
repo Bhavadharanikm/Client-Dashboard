@@ -1,7 +1,86 @@
 "use client";
 
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { RoiViewModel } from "@/lib/roi-metrics";
 import { useDashboardState } from "@/hooks/useDashboardState";
+
+// Header disclaimer's tooltip — the general explanation of why booking date
+// is used at all.
+const BOOKING_DATE_TOOLTIP = (
+  <>
+    We use &quot;Booked On&quot; date because it captures the moment a guest commits, allowing us to tie campaigns, spend, and seasonality
+    directly to demand. Stay-date reporting is better suited for financial metrics like revenue recognition and occupancy, but for
+    marketing performance, booking date gives a more accurate, real-time signal, especially in markets with longer booking windows.
+  </>
+);
+
+// Total Revenue and Direct Revenue each need their own explanation, not the
+// same paragraph twice — the interesting part differs per metric (all
+// channels vs. owned channel only).
+const TOTAL_REVENUE_TOOLTIP = (
+  <>
+    Total Revenue includes bookings from every channel — direct and third-party (OTAs) — counted by the date the guest booked, not the
+    date of their stay. That captures the full demand generated in this window, regardless of which channel it came through.
+  </>
+);
+
+const DIRECT_REVENUE_TOOLTIP = (
+  <>
+    Direct Revenue counts only bookings made through your own channel, not OTAs, by the date the guest booked rather than their stay
+    date. Since this is the revenue your marketing most directly drives, booking date gives the clearest signal of campaign impact for
+    the period.
+  </>
+);
+
+/**
+ * Small "?" icon + hover/focus tooltip for sitting right next to a stat-card
+ * label. The tooltip itself renders through a portal into document.body —
+ * the summary strip card has `overflow: hidden` for its rounded corners,
+ * which would otherwise clip a plain absolutely-positioned tooltip popping
+ * out of these small cells.
+ */
+function StatInfoTooltip({ children }: { children: React.ReactNode }) {
+  const [show, setShow] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const iconRef = useRef<HTMLSpanElement>(null);
+
+  function open() {
+    const rect = iconRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPos({ top: rect.bottom + window.scrollY + 8, left: rect.left + window.scrollX + rect.width / 2 });
+    setShow(true);
+  }
+
+  function close() {
+    setShow(false);
+  }
+
+  return (
+    <span
+      className="pp-stat-info"
+      ref={iconRef}
+      tabIndex={0}
+      onMouseEnter={open}
+      onMouseLeave={close}
+      onFocus={open}
+      onBlur={close}
+    >
+      <span className="pp-stat-info-icon" aria-hidden="true">
+        ?
+      </span>
+      {show &&
+        pos &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <span className="pp-stat-tooltip" role="tooltip" style={{ top: pos.top, left: pos.left }}>
+            {children}
+          </span>,
+          document.body
+        )}
+    </span>
+  );
+}
 
 export function ExecutiveSummary({ model }: { model: RoiViewModel }) {
   const { executiveSummary: s, clientName, dateRangeLabel } = model;
@@ -37,10 +116,7 @@ export function ExecutiveSummary({ model }: { model: RoiViewModel }) {
               ?
             </span>
             <span className="pp-disclaimer-tooltip" role="tooltip">
-              We use &quot;Booked On&quot; date because it captures the moment a guest commits, allowing us to tie campaigns, spend, and
-              seasonality directly to demand. Stay-date reporting is better suited for financial metrics like revenue recognition and
-              occupancy, but for marketing performance, booking date gives a more accurate, real-time signal, especially in markets with
-              longer booking windows.
+              {BOOKING_DATE_TOOLTIP}
             </span>
           </span>
         </div>
@@ -48,6 +124,7 @@ export function ExecutiveSummary({ model }: { model: RoiViewModel }) {
           <div className="pp-summary-stat">
             <div className="pp-summary-label" id="summaryLabel1">
               Total Revenue
+              <StatInfoTooltip>{TOTAL_REVENUE_TOOLTIP}</StatInfoTooltip>
             </div>
             <div className="pp-summary-value" id="summaryNewFollowers">
               {s.summaryNewFollowers}
@@ -59,6 +136,7 @@ export function ExecutiveSummary({ model }: { model: RoiViewModel }) {
           <div className="pp-summary-stat">
             <div className="pp-summary-label" id="summaryLabel2">
               Direct Revenue
+              <StatInfoTooltip>{DIRECT_REVENUE_TOOLTIP}</StatInfoTooltip>
             </div>
             <div className="pp-summary-value" id="summaryTotalImpressions">
               {s.summaryTotalImpressions}
