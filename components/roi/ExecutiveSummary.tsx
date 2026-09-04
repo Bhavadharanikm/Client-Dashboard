@@ -29,8 +29,8 @@ export function ExecutiveSummary({ model }: { model: RoiViewModel }) {
         <div className="pp-subtitle">Performance Overview</div>
         <div className="pp-disclaimer">
           <span className="pp-disclaimer-text">
-            Direct booking revenue is measured by booking date rather than stay date, as this provides the most accurate reflection of
-            marketing performance.
+            Booking revenue is measured by booking date rather than stay date, as this provides the most accurate reflection of marketing
+            performance.
           </span>
           <span className="pp-disclaimer-info" tabIndex={0}>
             <span className="pp-disclaimer-info-icon" aria-hidden="true">
@@ -39,7 +39,7 @@ export function ExecutiveSummary({ model }: { model: RoiViewModel }) {
             <span className="pp-disclaimer-tooltip" role="tooltip">
               We use &quot;Booked On&quot; date because it captures the moment a guest commits, allowing us to tie campaigns, spend, and
               seasonality directly to demand. Stay-date reporting is better suited for financial metrics like revenue recognition and
-              occupancy, but for marketing performance, booking date gives a more accurate, real-time signal — especially in markets with
+              occupancy, but for marketing performance, booking date gives a more accurate, real-time signal, especially in markets with
               longer booking windows.
             </span>
           </span>
