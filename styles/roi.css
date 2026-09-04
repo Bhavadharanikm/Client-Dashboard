@@ -841,11 +841,15 @@
     }
 
     /* Small "?" tooltip attached to individual stat-card labels (Total
-       Revenue / Direct Revenue). Rendered through a portal into
-       document.body, positioned inline via style={top,left} in JS — the
-       summary strip's overflow:hidden would otherwise clip it. */
+       Revenue / Direct Revenue), sitting inline right after the label text.
+       Nudged up slightly via `top` since the icon's own box otherwise reads
+       as hanging a little low next to the label's cap-height. The tooltip
+       content itself renders through a portal into document.body,
+       positioned via style={top,left} in JS, since the summary strip's
+       overflow:hidden would otherwise clip it. */
     .pp-stat-info {
       position: relative;
+      top: -3px;
       display: inline-flex;
       cursor: help;
       margin-left: 4px;
