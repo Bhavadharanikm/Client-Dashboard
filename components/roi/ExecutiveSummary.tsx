@@ -26,7 +26,7 @@ const TOTAL_REVENUE_TOOLTIP = (
 );
 
 const DIRECT_REVENUE_TOOLTIP = (
-  <>Bookings made directly through your own channel (not OTAs) counted by the date they were booked. (See the note above for why we use booking date.)</>
+  <>Bookings made directly through your own channel (not OTAs) counted by the date they were booked. (See the note above for why we use booking date)</>
 );
 
 /**
