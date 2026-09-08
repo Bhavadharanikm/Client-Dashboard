@@ -26,11 +26,7 @@ const TOTAL_REVENUE_TOOLTIP = (
 );
 
 const DIRECT_REVENUE_TOOLTIP = (
-  <>
-    Direct Revenue counts only bookings made through your own channel, not OTAs, by the date the guest booked rather than their stay
-    date. Since this is the revenue your marketing most directly drives, booking date gives the clearest signal of campaign impact for
-    the period.
-  </>
+  <>Bookings made directly through your own channel (not OTAs) counted by the date they were booked. (See the note above for why we use booking date.)</>
 );
 
 /**
